@@ -7,6 +7,10 @@ export default function ManageGaleri() {
   const [photoList, setPhotoList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Search & Filter States
+  const [photoSearch, setPhotoSearch] = useState('');
+  const [photoFilterKategori, setPhotoFilterKategori] = useState('Semua');
+
   // Form states
   const [editingId, setEditingId] = useState(null);
   const [judulFoto, setJudulFoto] = useState('');
@@ -192,35 +196,66 @@ export default function ManageGaleri() {
           </form>
 
           {/* List */}
-          <div className="md:col-span-7 space-y-3">
-            <h4 className="text-xs font-bold text-white uppercase tracking-wider">Daftar Dokumentasi Foto</h4>
+          <div className="md:col-span-7 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-900 pb-2">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider">Daftar Dokumentasi Foto</h4>
+              <div className="flex gap-2 flex-grow sm:flex-none">
+                <input
+                  type="text"
+                  placeholder="Cari foto..."
+                  value={photoSearch}
+                  onChange={(e) => setPhotoSearch(e.target.value)}
+                  className="bg-gray-950 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                />
+                <select
+                  value={photoFilterKategori}
+                  onChange={(e) => setPhotoFilterKategori(e.target.value)}
+                  className="bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="Semua">Semua Kategori</option>
+                  <option value="Kegiatan">Kegiatan</option>
+                  <option value="Sosial">Sosial</option>
+                  <option value="Audiensi">Audiensi</option>
+                  <option value="Eksternal">Eksternal</option>
+                </select>
+              </div>
+            </div>
+
             {loading ? (
               <p className="text-xs text-gray-500">Memuat foto...</p>
             ) : photoList.length === 0 ? (
               <p className="text-xs text-gray-500 italic">Belum ada foto.</p>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[450px] overflow-y-auto pr-1">
-                {photoList.map((p) => (
-                  <div key={p.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-3">
-                    <div className="flex items-center gap-2 truncate">
-                      <div className="h-8 w-12 rounded overflow-hidden bg-gray-900 shrink-0">
-                        <img src={p.gambar_url} alt="" className="h-full w-full object-cover" />
+                {photoList
+                  .filter((p) => {
+                    const matchSearch =
+                      p.judul_foto.toLowerCase().includes(photoSearch.toLowerCase()) ||
+                      p.deskripsi.toLowerCase().includes(photoSearch.toLowerCase());
+                    const matchCat = photoFilterKategori === 'Semua' || p.kategori === photoFilterKategori;
+                    return matchSearch && matchCat;
+                  })
+                  .map((p) => (
+                    <div key={p.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-3">
+                      <div className="flex items-center gap-2 truncate">
+                        <div className="h-8 w-12 rounded overflow-hidden bg-gray-900 shrink-0">
+                          <img src={p.gambar_url} alt="" className="h-full w-full object-cover" />
+                        </div>
+                        <div className="truncate">
+                          <h4 className="font-bold text-white truncate">{p.judul_foto}</h4>
+                          <span className="text-[9px] text-gray-500">{p.kategori} · {p.tanggal_unggah}</span>
+                        </div>
                       </div>
-                      <div className="truncate">
-                        <h4 className="font-bold text-white truncate">{p.judul_foto}</h4>
-                        <span className="text-[9px] text-gray-500">{p.kategori} · {p.tanggal_unggah}</span>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => handleEdit(p)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDelete(p.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <button onClick={() => handleEdit(p)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
-                        <Edit3 className="h-3.5 w-3.5" />
-                      </button>
-                      <button onClick={() => handleDelete(p.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  ))}
               </div>
             )}
           </div>

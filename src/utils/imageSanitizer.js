@@ -20,8 +20,8 @@ export function sanitizeAndCompressImage(file, quality = 0.7) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 
-        // Set maximum dimension to avoid excessive memory usage (e.g. 1920px max width/height)
-        const MAX_DIM = 1920;
+        // Set maximum dimension to avoid excessive memory usage (e.g. 1600px max width/height)
+        const MAX_DIM = 1600;
         let width = img.width;
         let height = img.height;
 

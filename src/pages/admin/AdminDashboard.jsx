@@ -6,13 +6,21 @@ import RoomManagement from '../../components/admin/RoomManagement';
 import ManageBerita from '../../components/admin/ManageBerita';
 import ManageProker from '../../components/admin/ManageProker';
 import ManageGaleri from '../../components/admin/ManageGaleri';
-import { Lock, User, LogOut, Check, X, Shield, Users, MessageSquare, Key, AlertTriangle, UserMinus, Trash2, Edit3, Image, Layers, Calendar, BookOpen, Megaphone } from 'lucide-react';
+import { Lock, User, LogOut, Check, X, Shield, Users, MessageSquare, Key, AlertTriangle, UserMinus, Trash2, Edit3, Image, Layers, Calendar, BookOpen, Megaphone, Menu } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
+import Toast from '../../components/ui/Toast';
 
 export default function AdminDashboard() {
   useDocumentTitle('Dasbor Admin');
   // Authentication State
   const [session, setSession] = useState(null);
+
+  // Toast & Modal States
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastType, setToastType] = useState('success');
+  const [confirmDeletePengurus, setConfirmDeletePengurus] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Dashboard Navigation State
   const [activeTab, setActiveTab] = useState('moderation'); // moderation | pengurus | ruangan | berita_admin | proker_admin | galeri_admin | offboarding
@@ -121,8 +129,11 @@ export default function AdminDashboard() {
       
       // Update local state
       setPendingAspirations(prev => prev.filter(item => item.id !== id));
+      setToastType('success');
+      setToastMsg('Aspirasi berhasil diterbitkan ke publik.');
     } catch (err) {
-      alert(`Gagal menerbitkan: ${err.message}`);
+      setToastType('error');
+      setToastMsg(`Gagal menerbitkan: ${err.message}`);
     }
   };
 
@@ -136,8 +147,11 @@ export default function AdminDashboard() {
 
       if (error) throw error;
       setPendingAspirations(prev => prev.filter(item => item.id !== id));
+      setToastType('success');
+      setToastMsg('Aspirasi berhasil ditolak dan dihapus.');
     } catch (err) {
-      alert(`Gagal menghapus: ${err.message}`);
+      setToastType('error');
+      setToastMsg(`Gagal menghapus: ${err.message}`);
     }
   };
 
@@ -222,27 +236,37 @@ export default function AdminDashboard() {
     setFormPeriode(p.periode_tahun);
   };
 
-  const handleDeletePengurus = async (id, ministryId) => {
-    const role = session.user.user_metadata?.role;
-    const adminMinistryId = session.user.user_metadata?.kementerian_id;
+  const triggerDeletePengurus = (p) => {
+    const role = session?.user?.user_metadata?.role;
+    const adminMinistryId = session?.user?.user_metadata?.kementerian_id;
 
-    if (role === 'admin_sektoral' && ministryId !== adminMinistryId) {
-      alert('Akses Ditolak: Anda hanya dapat menghapus pengurus dari kementerian Anda sendiri.');
+    if (role === 'admin_sektoral' && p.kementerian_id !== adminMinistryId) {
+      setToastType('error');
+      setToastMsg('Akses Ditolak: Anda hanya dapat menghapus pengurus dari kementerian Anda sendiri.');
       return;
     }
 
-    if (!confirm('Apakah Anda yakin ingin menghapus pengurus ini?')) return;
+    setConfirmDeletePengurus(p);
+  };
+
+  const executeDeletePengurus = async () => {
+    if (!confirmDeletePengurus) return;
 
     try {
       const { error } = await supabase
         .from('pengurus')
         .delete()
-        .eq('id', id);
+        .eq('id', confirmDeletePengurus.id);
 
       if (error) throw error;
+      setToastType('success');
+      setToastMsg(`Data pengurus ${confirmDeletePengurus.nama} berhasil dihapus.`);
       fetchDashboardData();
     } catch (err) {
-      alert(`Gagal menghapus: ${err.message}`);
+      setToastType('error');
+      setToastMsg(`Gagal menghapus: ${err.message}`);
+    } finally {
+      setConfirmDeletePengurus(null);
     }
   };
 
@@ -254,6 +278,10 @@ export default function AdminDashboard() {
 
     if (!selectedAdminId) {
       setActionError('Pilih akun admin sektoral terlebih dahulu.');
+      return;
+    }
+    if (selectedAdminId === session?.user?.id) {
+      setActionError('Keamanan Sistem: Anda tidak dapat mengubah kredensial akun Anda sendiri dari panel offboarding.');
       return;
     }
     if (!newAdminPassword || newAdminPassword.length < 6) {
@@ -282,6 +310,10 @@ export default function AdminDashboard() {
       setActionError('Pilih akun admin sektoral terlebih dahulu.');
       return;
     }
+    if (selectedAdminId === session?.user?.id) {
+      setActionError('Keamanan Sistem: Anda tidak dapat mencabut sesi aktif akun Anda sendiri dari panel offboarding.');
+      return;
+    }
 
     try {
       // Simulate JWT Token Revocation (calls auth.admin.signOut() for that user id or triggers state reset)
@@ -305,179 +337,379 @@ export default function AdminDashboard() {
   const userKementerianId = session?.user?.user_metadata?.kementerian_id;
 
   return (
-    <div className="space-y-8">
-      {/* Admin Top Navbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-gray-900/60 border border-gray-800">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-purple-600/10 border border-purple-500/20">
-            <Shield className="h-6 w-6 text-purple-400" />
-          </div>
-          <div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-white text-base">{userNama}</span>
-              <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${
-                userRole === 'super_admin'
-                  ? 'bg-purple-500/15 text-purple-400 border-purple-500/25'
-                  : 'bg-indigo-500/15 text-indigo-400 border-indigo-500/25'
-              }`}>
-                {userRole === 'super_admin' ? 'Super Admin' : 'Admin Sektoral'}
-              </span>
+    <div className="relative">
+      {/* ── Toast Notifications ──────────────────────────────────── */}
+      <Toast
+        message={toastMsg}
+        type={toastType}
+        onClose={() => setToastMsg('')}
+      />
+
+      {/* ── Dialog Deletion Modal ────────────────────────────────── */}
+      <Dialog
+        open={!!confirmDeletePengurus}
+        onOpenChange={() => setConfirmDeletePengurus(null)}
+      >
+        <DialogHeader>
+          <DialogTitle>Konfirmasi Hapus Pengurus</DialogTitle>
+          <DialogDescription>
+            Apakah Anda yakin ingin menghapus data pengurus atas nama{' '}
+            <strong className="text-white">{confirmDeletePengurus?.nama}</strong>?
+            Tindakan ini permanen dan tidak dapat dibatalkan.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="mt-6 flex justify-end gap-2">
+          <button
+            onClick={() => setConfirmDeletePengurus(null)}
+            className="px-4 py-2 rounded-lg bg-gray-900 text-gray-400 hover:text-white text-xs cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            onClick={executeDeletePengurus}
+            className="px-4 py-2 rounded-lg bg-red-650 hover:bg-red-750 text-white font-bold text-xs cursor-pointer"
+          >
+            Hapus Permanen
+          </button>
+        </div>
+      </Dialog>
+
+      {/* ── Mobile Sidebar Drawer ─────────────────────────────────── */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm lg:hidden animate-in fade-in duration-200"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+      <div
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-950 border-r border-gray-900 p-6 flex flex-col justify-between transform transition-transform duration-300 lg:hidden ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-900 pb-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-purple-500" />
+              <span className="font-bold text-white text-sm">Navigasi Dasbor</span>
             </div>
-            <p className="text-xs text-gray-400 mt-0.5">
-              {userRole === 'super_admin' ? 'Pemilik Hak CRUD Penuh' : getMinistryName(userKementerianId)}
-            </p>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="text-gray-400 hover:text-white p-1 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <button
+              onClick={() => {
+                setActiveTab('moderation');
+                setSidebarOpen(false);
+              }}
+              className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === 'moderation'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <MessageSquare className="h-4 w-4" />
+              Moderasi Aspirasi
+              {pendingAspirations.length > 0 && (
+                <span className="ml-auto bg-red-650 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  {pendingAspirations.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('pengurus');
+                resetPengurusForm();
+                setSidebarOpen(false);
+              }}
+              className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === 'pengurus'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Users className="h-4 w-4" />
+              Kelola Pengurus
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('ruangan');
+                setSidebarOpen(false);
+              }}
+              className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === 'ruangan'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Calendar className="h-4 w-4" />
+              Jadwal Ruangan
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('berita_admin');
+                setSidebarOpen(false);
+              }}
+              className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === 'berita_admin'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <BookOpen className="h-4 w-4" />
+              Berita & Pengumuman
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('proker_admin');
+                setSidebarOpen(false);
+              }}
+              className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === 'proker_admin'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Layers className="h-4 w-4" />
+              Proker & Agenda
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('galeri_admin');
+                setSidebarOpen(false);
+              }}
+              className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                activeTab === 'galeri_admin'
+                  ? 'bg-purple-600 text-white'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Image className="h-4 w-4" />
+              Galeri Foto
+            </button>
+
+            {userRole === 'super_admin' && (
+              <button
+                onClick={() => {
+                  setActiveTab('offboarding');
+                  setSidebarOpen(false);
+                }}
+                className={`w-full py-2.5 px-3.5 rounded-lg text-left text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'offboarding'
+                    ? 'bg-purple-600 text-white'
+                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <UserMinus className="h-4 w-4" />
+                Offboarding Sektoral
+              </button>
+            )}
           </div>
         </div>
+
         <button
           onClick={handleLogout}
-          className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 font-semibold px-3 py-2 rounded-lg hover:bg-red-950/20 border border-transparent hover:border-red-950 transition-colors cursor-pointer self-start sm:self-auto"
+          className="w-full py-2.5 px-3.5 rounded bg-red-950/20 text-red-400 border border-red-950/40 text-xs font-bold flex items-center justify-center gap-1.5 cursor-pointer"
         >
           <LogOut className="h-4 w-4" />
-          Keluar
+          Keluar dari Akun
         </button>
       </div>
 
-      {/* Stats Summary Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
-          <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Aspirasi Tertunda</p>
-          <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-white">{pendingAspirations.length}</span>
-            <MessageSquare className="h-5 w-5 text-purple-500" />
-          </div>
-        </div>
-        <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
-          <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Kementerian</p>
-          <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-white">{kementerianList.length}</span>
-            <Layers className="h-5 w-5 text-indigo-500" />
-          </div>
-        </div>
-        <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
-          <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Pengurus Aktif</p>
-          <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-white">{pengurusList.filter(p => p.periode_tahun === '2025/2026').length}</span>
-            <Users className="h-5 w-5 text-emerald-500" />
-          </div>
-        </div>
-        <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
-          <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Tipe Admin</p>
-          <div className="flex items-center justify-between">
-            <span className="text-2xl font-bold text-white">{userRole === 'super_admin' ? sectoralAdmins.length + 1 : 1}</span>
-            <Shield className="h-5 w-5 text-purple-500" />
-          </div>
-        </div>
-      </div>
-
-      {/* Main Grid */}
+      {/* ── Main Container Layout ─────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Navigation Sidebar */}
-        <div className="lg:col-span-3 space-y-3">
-          <button
-            onClick={() => setActiveTab('moderation')}
-            className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-              activeTab === 'moderation'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
-            }`}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Moderasi Aspirasi
-            {pendingAspirations.length > 0 && (
-              <span className="ml-auto bg-red-600 text-white text-[10px] font-extrabold px-1.5 py-0.5 rounded-full shrink-0">
-                {pendingAspirations.length}
-              </span>
-            )}
-          </button>
+        
+        {/* ── Left Column: Profile Card & Sidebar (Desktop) ───────── */}
+        <div className="lg:col-span-3 space-y-4 lg:sticky lg:top-20">
           
-          <button
-            onClick={() => {
-              setActiveTab('pengurus');
-              resetPengurusForm();
-            }}
-            className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-              activeTab === 'pengurus'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
-            }`}
-          >
-            <Users className="h-4 w-4" />
-            Kelola Pengurus BEM
-          </button>
+          {/* Top Bar / Profile Card */}
+          <div className="p-4 rounded-xl bg-gray-900/60 border border-gray-800 flex flex-col gap-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 rounded-lg bg-purple-600/10 border border-purple-500/20 shrink-0">
+                  <Shield className="h-5 w-5 text-purple-400" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-xs leading-none">{userNama}</h4>
+                  <span className="text-[8px] font-extrabold uppercase text-purple-400 tracking-wider">
+                    {userRole === 'super_admin' ? 'Super Admin' : 'Admin Sektoral'}
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-1.5 rounded-lg bg-gray-950 border border-gray-800 text-gray-400 hover:text-white cursor-pointer"
+              >
+                <Menu className="h-4 w-4" />
+              </button>
+            </div>
 
-          <button
-            onClick={() => setActiveTab('ruangan')}
-            className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-              activeTab === 'ruangan'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
-            }`}
-          >
-            <Calendar className="h-4 w-4" />
-            Jadwal Ruangan
-          </button>
+            <p className="text-[10px] text-gray-400 leading-normal border-t border-gray-950 pt-3">
+              {userRole === 'super_admin' ? 'Pemilik Hak CRUD Penuh' : getMinistryName(userKementerianId)}
+            </p>
 
-          <button
-            onClick={() => setActiveTab('berita_admin')}
-            className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-              activeTab === 'berita_admin'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
-            }`}
-          >
-            <BookOpen className="h-4 w-4" />
-            Berita & Pengumuman
-          </button>
-
-          <button
-            onClick={() => setActiveTab('proker_admin')}
-            className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-              activeTab === 'proker_admin'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
-            }`}
-          >
-            <Layers className="h-4 w-4" />
-            Proker & Agenda
-          </button>
-
-          <button
-            onClick={() => setActiveTab('galeri_admin')}
-            className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-              activeTab === 'galeri_admin'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
-            }`}
-          >
-            <Image className="h-4 w-4" />
-            Galeri Foto
-          </button>
-
-          {userRole === 'super_admin' && (
             <button
-              onClick={() => setActiveTab('offboarding')}
-              className={`w-full py-3 px-4 rounded-lg text-left text-sm font-semibold flex items-center gap-2.5 transition-all cursor-pointer border ${
-                activeTab === 'offboarding'
-                  ? 'bg-purple-600 text-white border-purple-500 shadow-lg shadow-purple-500/15'
-                  : 'bg-gray-900/30 text-gray-400 border-gray-800 hover:text-gray-200 hover:bg-gray-900/50'
+              onClick={handleLogout}
+              className="w-full py-2 px-3 rounded bg-red-950/10 hover:bg-red-950/20 text-red-400 border border-red-950/30 text-[10px] font-bold flex items-center justify-center gap-1 cursor-pointer transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Keluar
+            </button>
+          </div>
+
+          {/* Desktop Navigation Links */}
+          <div className="hidden lg:flex flex-col gap-1.5 p-1.5 rounded-xl bg-gray-900/20 border border-gray-800">
+            <button
+              onClick={() => setActiveTab('moderation')}
+              className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                activeTab === 'moderation'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
               }`}
             >
-              <UserMinus className="h-4 w-4" />
-              Offboarding Sektoral
+              <MessageSquare className="h-3.5 w-3.5" />
+              <span>Moderasi Aspirasi</span>
+              {pendingAspirations.length > 0 && (
+                <span className="ml-auto bg-red-650 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
+                  {pendingAspirations.length}
+                </span>
+              )}
             </button>
-          )}
+
+            <button
+              onClick={() => {
+                setActiveTab('pengurus');
+                resetPengurusForm();
+              }}
+              className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                activeTab === 'pengurus'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+              }`}
+            >
+              <Users className="h-3.5 w-3.5" />
+              <span>Kelola Pengurus BEM</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('ruangan')}
+              className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                activeTab === 'ruangan'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              <span>Jadwal Ruangan</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('berita_admin')}
+              className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                activeTab === 'berita_admin'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+              }`}
+            >
+              <BookOpen className="h-3.5 w-3.5" />
+              <span>Berita & Pengumuman</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('proker_admin')}
+              className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                activeTab === 'proker_admin'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+              }`}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              <span>Proker & Agenda</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('galeri_admin')}
+              className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                activeTab === 'galeri_admin'
+                  ? 'bg-purple-600 text-white shadow-md'
+                  : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+              }`}
+            >
+              <Image className="h-3.5 w-3.5" />
+              <span>Galeri Foto</span>
+            </button>
+
+            {userRole === 'super_admin' && (
+              <button
+                onClick={() => setActiveTab('offboarding')}
+                className={`w-full py-2.5 px-3 rounded-lg text-left text-xs font-bold flex items-center gap-2.5 transition-all cursor-pointer ${
+                  activeTab === 'offboarding'
+                    ? 'bg-purple-600 text-white shadow-md'
+                    : 'text-gray-400 hover:text-white hover:bg-white/[0.02]'
+                }`}
+              >
+                <UserMinus className="h-3.5 w-3.5" />
+                <span>Offboarding Sektoral</span>
+              </button>
+            )}
+          </div>
         </div>
 
-        {/* Content Panel */}
+        {/* ── Right Column: Dashboard Stats & Panel view ─────────── */}
         <div className="lg:col-span-9 space-y-6">
+          
+          {/* Stats Summary Row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+            <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
+              <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Aspirasi Tertunda</p>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-white">{pendingAspirations.length}</span>
+                <MessageSquare className="h-5 w-5 text-purple-500" />
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
+              <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Kementerian</p>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-white">{kementerianList.length}</span>
+                <Layers className="h-5 w-5 text-indigo-500" />
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
+              <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Pengurus Aktif</p>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-white">
+                  {pengurusList.filter((p) => p.periode_tahun === '2025/2026').length}
+                </span>
+                <Users className="h-5 w-5 text-emerald-500" />
+              </div>
+            </div>
+            <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
+              <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Tipe Admin</p>
+              <div className="flex items-center justify-between">
+                <span className="text-2xl font-bold text-white">
+                  {userRole === 'super_admin' ? sectoralAdmins.length + 1 : 1}
+                </span>
+                <Shield className="h-5 w-5 text-purple-500" />
+              </div>
+            </div>
+          </div>
+
+          {/* Render Active Tab panel */}
           {/* TAB 1: MODERASI ASPIRASI */}
           {activeTab === 'moderation' && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-bold text-white">Gerbang Moderasi Konten</h3>
-                  <p className="text-xs text-gray-400">Persetujuan aspirasi berstatus Draft & Review sebelum diterbitkan ke publik.</p>
-                </div>
+              <div>
+                <h3 className="text-xl font-bold text-white">Gerbang Moderasi Konten</h3>
+                <p className="text-xs text-gray-400 mt-1">Persetujuan aspirasi berstatus Draft & Review sebelum diterbitkan ke publik.</p>
               </div>
 
               {dataLoading ? (
@@ -486,80 +718,58 @@ export default function AdminDashboard() {
                   <p className="text-xs text-gray-400">Memuat berkas...</p>
                 </div>
               ) : pendingAspirations.length === 0 ? (
-                <div className="p-8 text-center border border-gray-800 rounded-xl bg-gray-900/20 text-gray-400">
-                  <Check className="h-8 w-8 text-emerald-400 mx-auto mb-2" />
-                  <p className="font-semibold text-sm">Semua aspirasi bersih!</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Tidak ada antrean aspirasi baru yang perlu dimoderasi.</p>
+                <div className="text-center py-16 border border-dashed border-gray-800 rounded-2xl bg-gray-950/10">
+                  <Check className="h-10 w-10 mx-auto text-emerald-600 mb-3 animate-bounce" />
+                  <h4 className="font-bold text-white text-sm">Semua Bersih!</h4>
+                  <p className="text-xs text-gray-400 mt-0.5">Tidak ada aspirasi tertunda yang memerlukan moderasi saat ini.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {pendingAspirations.map((item) => (
-                    <Card key={item.id} className="border-gray-800 bg-gray-900/40">
-                      <CardContent className="p-5 space-y-4">
-                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-800 pb-3">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded border ${
-                              item.status === 'review'
-                                ? 'bg-amber-500/10 text-amber-400 border-amber-500/25'
-                                : 'bg-gray-800 text-gray-400 border-gray-700'
-                            }`}>
-                              {item.status}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {new Date(item.created_at).toLocaleString('id-ID')}
-                            </span>
-                          </div>
-                          <span className="text-xs font-bold text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-full">
-                            {item.tipe_isu === 'tangible' ? 'Fasilitas' : 'Non-Fasilitas'}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {pendingAspirations.map((a) => (
+                    <Card key={a.id} className="border-gray-800 bg-gray-900/30 flex flex-col justify-between">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border ${
+                            a.tipe_isu === 'tangible'
+                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                              : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                          }`}>
+                            {a.tipe_isu}
+                          </span>
+                          <span className="text-[10px] text-gray-500">
+                            {new Date(a.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
                           </span>
                         </div>
-
-                        <div className="space-y-1.5 text-xs">
-                          <p className="text-gray-400">
-                            Pengirim:{' '}
-                            <span className="text-gray-200">
-                              {item.identitas ? `${item.identitas.nama} (${item.identitas.nim})` : 'Anonim'}
-                            </span>
-                          </p>
-                          <p className="text-gray-400">
-                            Program Studi: <span className="text-gray-200">{item.prodi}</span>
-                          </p>
-                        </div>
-
-                        <p className="text-gray-200 text-sm bg-gray-950 p-3 rounded border border-gray-900 whitespace-pre-line leading-relaxed">
-                          {item.deskripsi}
+                        <CardTitle className="text-sm text-white mt-2">
+                          Aspirasi dari {a.identitas ? a.identitas.nama : 'Mahasiswa Anonim'}
+                        </CardTitle>
+                        <CardDescription className="text-[10px]">
+                          Prodi: {a.prodi || 'Tidak dicantumkan'}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <p className="text-xs text-gray-300 leading-relaxed bg-gray-950/40 p-3 rounded-lg border border-gray-900">
+                          {a.deskripsi}
                         </p>
-
-                        {item.bukti_url && (
-                          <div>
-                            <p className="text-xs text-gray-400 font-semibold mb-1">Bukti Terlampir:</p>
-                            <a
-                              href={item.bukti_url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 text-xs text-purple-400 hover:text-purple-300 font-medium underline"
-                            >
-                              <Image className="h-3.5 w-3.5" />
-                              Lihat Gambar Bukti (Privasi EXIF Telah Dihapus)
-                            </a>
+                        
+                        {a.bukti_url && (
+                          <div className="rounded-lg overflow-hidden border border-gray-900 max-h-40 bg-black">
+                            <img src={a.bukti_url} alt="Bukti Lampiran" className="w-full h-full object-cover" />
                           </div>
                         )}
 
-                        {/* Action Buttons */}
-                        <div className="flex gap-3 pt-2">
+                        <div className="flex gap-2 pt-2">
                           <button
-                            onClick={() => handleApprove(item.id)}
-                            className="py-1.5 px-3 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                            onClick={() => handleApprove(a.id)}
+                            className="flex-grow py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex justify-center items-center gap-1 cursor-pointer transition-colors"
                           >
-                            <Check className="h-3.5 w-3.5" />
-                            Setujui & Terbitkan
+                            <Check className="h-3.5 w-3.5" /> Setujui
                           </button>
                           <button
-                            onClick={() => handleReject(item.id)}
-                            className="py-1.5 px-3 rounded bg-red-950/60 hover:bg-red-900/60 text-red-400 border border-red-900/40 font-semibold text-xs flex items-center gap-1 cursor-pointer transition-colors"
+                            onClick={() => handleReject(a.id)}
+                            className="flex-grow py-2 rounded bg-red-950/40 hover:bg-red-900/20 text-red-400 border border-red-900/30 font-bold text-xs flex justify-center items-center gap-1 cursor-pointer transition-colors"
                           >
-                            <X className="h-3.5 w-3.5" />
-                            Tolak & Hapus
+                            <X className="h-3.5 w-3.5" /> Tolak & Hapus
                           </button>
                         </div>
                       </CardContent>
@@ -572,133 +782,113 @@ export default function AdminDashboard() {
 
           {/* TAB 2: KELOLA PENGURUS BEM */}
           {activeTab === 'pengurus' && (
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
-              {/* Form Input */}
-              <div className="md:col-span-5">
-                <Card className="border-gray-800 bg-gray-900/50">
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
+              
+              {/* Form Input Pengurus */}
+              <div className="xl:col-span-5">
+                <Card className="border-gray-800 bg-gray-900/30">
                   <CardHeader>
-                    <CardTitle className="text-white text-lg">
-                      {editingPengurus ? 'Edit Pengurus' : 'Tambah Pengurus'}
+                    <CardTitle className="text-white text-base">
+                      {editingPengurus ? 'Edit Data Anggota' : 'Daftarkan Anggota Baru'}
                     </CardTitle>
-                    <CardDescription>
-                      Kelola daftar riwayat kabinet.
-                    </CardDescription>
+                    <CardDescription>Isi detail biodata pengurus kabinet secara lengkap.</CardDescription>
                   </CardHeader>
                   <CardContent>
                     <form onSubmit={handleSavePengurus} className="space-y-4">
                       <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Nama Lengkap</label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Nama Lengkap</label>
                         <input
                           type="text"
                           required
                           value={formNama}
                           onChange={(e) => setFormNama(e.target.value)}
-                          placeholder="Budi Wijaya"
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2"
+                          placeholder="Nama lengkap beserta gelar jika ada"
+                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
                         />
                       </div>
 
-                      <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Jabatan</label>
-                        <input
-                          type="text"
-                          required
-                          value={formJabatan}
-                          onChange={(e) => setFormJabatan(e.target.value)}
-                          placeholder="Menteri/Staf Magang"
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2"
-                        />
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Jabatan</label>
+                          <input
+                            type="text"
+                            required
+                            value={formJabatan}
+                            onChange={(e) => setFormJabatan(e.target.value)}
+                            placeholder="cth: Menteri Utama"
+                            className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Kementerian</label>
+                          <select
+                            value={formKementerianId}
+                            onChange={(e) => setFormKementerianId(e.target.value)}
+                            className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                          >
+                            <option value="">-- Pilih Kementerian --</option>
+                            {kementerianList.map((kem) => (
+                              <option key={kem.id} value={kem.id}>{kem.nama_kementerian}</option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Periode Kabinet</label>
+                          <select
+                            value={formPeriode}
+                            onChange={(e) => setFormPeriode(e.target.value)}
+                            className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                          >
+                            <option value="2025/2026">2025/2026</option>
+                            <option value="2024/2025">2024/2025</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">URL Foto (Optional)</label>
+                          <input
+                            type="text"
+                            value={formFotoUrl}
+                            onChange={(e) => setFormFotoUrl(e.target.value)}
+                            placeholder="Link foto portrait"
+                            className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                          />
+                        </div>
                       </div>
 
                       <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Kementerian</label>
-                        <Select
-                          value={formKementerianId}
-                          onValueChange={setFormKementerianId}
-                          disabled={userRole === 'admin_sektoral'} // Locked to their own ministry
-                        >
-                          {kementerianList.map((kem) => (
-                            <SelectItem key={kem.id} value={kem.id}>
-                              {kem.nama_kementerian}
-                            </SelectItem>
-                          ))}
-                        </Select>
-                        {userRole === 'admin_sektoral' && (
-                          <span className="text-[10px] text-indigo-400 block mt-1">Terkunci pada kementerian Anda.</span>
-                        )}
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Periode Tahun</label>
-                        <input
-                          type="text"
-                          required
-                          value={formPeriode}
-                          onChange={(e) => setFormPeriode(e.target.value)}
-                          placeholder="2025/2026"
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2"
-                        />
-                      </div>
-
-                      <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
-                          Prestasi Akademik (Satu per baris)
-                        </label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Prestasi Akademik (Baris Baru)</label>
                         <textarea
                           rows={2}
                           value={formAkademik}
                           onChange={(e) => setFormAkademik(e.target.value)}
-                          placeholder="IPK 3.80&#10;Juara 1 LKTIN"
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2"
+                          placeholder="Masukkan prestasi akademik, pisah per baris"
+                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 resize-none"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
-                          Prestasi Non-Akademik (Satu per baris)
-                        </label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Prestasi Non-Akademik (Baris Baru)</label>
                         <textarea
                           rows={2}
                           value={formNonAkademik}
                           onChange={(e) => setFormNonAkademik(e.target.value)}
-                          placeholder="Duta Kampus&#10;Awardee Beasiswa"
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2"
+                          placeholder="Masukkan prestasi non-akademik, pisah per baris"
+                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 resize-none"
                         />
                       </div>
 
                       <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
-                          Riwayat Organisasi (Satu per baris)
-                        </label>
+                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">Riwayat Organisasi (Baris Baru)</label>
                         <textarea
                           rows={2}
                           value={formOrganisasi}
                           onChange={(e) => setFormOrganisasi(e.target.value)}
-                          placeholder="Ketua Himpunan&#10;Koordinator Divisi"
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white focus:border-purple-500 focus:outline-none focus:ring-2"
+                          placeholder="Masukkan pengalaman organisasi, pisah per baris"
+                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 resize-none"
                         />
-                      </div>
-
-                       <div>
-                        <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">Unggah Foto Pengurus</label>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setFormFotoUrl(reader.result);
-                              };
-                              reader.readAsDataURL(file);
-                            }
-                          }}
-                          className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-1.5 text-xs text-gray-400 focus:border-purple-500 focus:outline-none file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-purple-600 file:text-white hover:file:bg-purple-700 file:cursor-pointer"
-                        />
-                        {formFotoUrl && (
-                          <span className="text-[9px] text-emerald-400 block mt-1">✓ Berkas foto siap diunggah</span>
-                        )}
                       </div>
 
                       {actionError && (
@@ -711,15 +901,15 @@ export default function AdminDashboard() {
                       <div className="flex gap-2">
                         <button
                           type="submit"
-                          className="flex-1 py-2 px-3 rounded bg-purple-600 hover:bg-purple-700 text-white font-semibold text-xs cursor-pointer transition-colors"
+                          className="flex-1 py-2 px-3 rounded bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs cursor-pointer"
                         >
-                          {editingPengurus ? 'Perbarui' : 'Simpan'}
+                          {editingPengurus ? 'Update Data' : 'Daftarkan Anggota'}
                         </button>
                         {editingPengurus && (
                           <button
                             type="button"
                             onClick={resetPengurusForm}
-                            className="py-2 px-3 rounded bg-gray-900 border border-gray-800 text-gray-400 hover:text-white text-xs cursor-pointer"
+                            className="py-2 px-3 rounded bg-gray-800 text-gray-400 hover:text-white text-xs cursor-pointer"
                           >
                             Batal
                           </button>
@@ -730,54 +920,64 @@ export default function AdminDashboard() {
                 </Card>
               </div>
 
-              {/* List View */}
-              <div className="md:col-span-7 space-y-4 max-h-[75vh] overflow-y-auto pr-1">
-                <h4 className="text-sm font-bold text-white">Daftar Pengurus Kabinet</h4>
-                {pengurusList.map((p) => {
-                  const isLocked = userRole === 'admin_sektoral' && p.kementerian_id !== userKementerianId;
-                  return (
-                    <div
-                      key={p.id}
-                      className={`p-4 rounded-lg border bg-gray-900/30 flex items-center justify-between gap-4 transition-colors ${
-                        isLocked ? 'border-gray-800/40 opacity-60' : 'border-gray-800 hover:border-gray-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-800 shrink-0">
-                          <img src={p.foto_url} alt="" className="h-full w-full object-cover" />
-                        </div>
-                        <div>
-                          <div className="font-bold text-white text-sm">{p.nama}</div>
-                          <div className="text-[10px] text-gray-400">
-                            {p.jabatan} | {getMinistryName(p.kementerian_id)}
-                          </div>
-                          <div className="text-[9px] text-purple-400 mt-0.5">Periode {p.periode_tahun}</div>
-                        </div>
-                      </div>
+              {/* List Data Anggota */}
+              <div className="xl:col-span-7 space-y-4">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Daftar Pengurus Kabinet</h4>
+                  <p className="text-[11px] text-gray-400">Menampilkan seluruh data pengurus terdaftar BEM.</p>
+                </div>
 
-                      {!isLocked ? (
-                        <div className="flex gap-2 shrink-0">
-                          <button
-                            onClick={() => handleEditPengurusClick(p)}
-                            className="p-1.5 rounded bg-gray-800 hover:bg-purple-600 text-gray-400 hover:text-white transition-colors cursor-pointer"
-                            title="Edit Pengurus"
-                          >
-                            <Edit3 className="h-3.5 w-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeletePengurus(p.id, p.kementerian_id)}
-                            className="p-1.5 rounded bg-gray-800 hover:bg-red-950 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
-                            title="Hapus Pengurus"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1">
+                  {pengurusList.map((p) => {
+                    const isLocked =
+                      userRole === 'admin_sektoral' &&
+                      p.kementerian_id !== userKementerianId;
+                    return (
+                      <div
+                        key={p.id}
+                        className={`p-4 rounded-xl border flex items-center justify-between gap-4 transition-all ${
+                          isLocked
+                            ? 'border-gray-900 bg-gray-950/20 opacity-60'
+                            : 'border-gray-800 bg-gray-900/30'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 truncate">
+                          <div className="h-10 w-10 rounded-full overflow-hidden border border-gray-800 shrink-0">
+                            <img src={p.foto_url} alt="" className="h-full w-full object-cover" />
+                          </div>
+                          <div>
+                            <div className="font-bold text-white text-sm">{p.nama}</div>
+                            <div className="text-[10px] text-gray-400">
+                              {p.jabatan} | {getMinistryName(p.kementerian_id)}
+                            </div>
+                            <div className="text-[9px] text-purple-400 mt-0.5">Periode {p.periode_tahun}</div>
+                          </div>
                         </div>
-                      ) : (
-                        <span className="text-[9px] text-gray-500 font-medium">Read Only</span>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        {!isLocked ? (
+                          <div className="flex gap-2 shrink-0">
+                            <button
+                              onClick={() => handleEditPengurusClick(p)}
+                              className="p-1.5 rounded bg-gray-800 hover:bg-purple-600 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                              title="Edit Pengurus"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+                            <button
+                              onClick={() => triggerDeletePengurus(p)}
+                              className="p-1.5 rounded bg-gray-800 hover:bg-red-950 text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                              title="Hapus Pengurus"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[9px] text-gray-500 font-medium">Read Only</span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
@@ -786,25 +986,25 @@ export default function AdminDashboard() {
           {activeTab === 'ruangan' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-bold text-white">Manajemen Jadwal Ruangan</h3>
-                <p className="text-xs text-gray-400 mt-1">Tambah, edit, dan hapus jadwal peminjaman ruangan ormawa.</p>
+                <h3 className="text-xl font-bold text-white">Kalender Reservasi Ruangan</h3>
+                <p className="text-xs text-gray-400 mt-1">Kelola permohonan peminjaman aula pertemuan ormawa secara real-time.</p>
               </div>
               <RoomManagement />
             </div>
           )}
 
-          {/* TAB BERITA ADMIN */}
+          {/* TAB BERITA & AGENDA */}
           {activeTab === 'berita_admin' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-xl font-bold text-white">Manajemen Berita & Pengumuman</h3>
-                <p className="text-xs text-gray-400 mt-1">Publikasikan rilis resmi, opini, artikel berita, dan pasang pengumuman dinamis.</p>
+                <h3 className="text-xl font-bold text-white">Manajemen Publikasi Berita</h3>
+                <p className="text-xs text-gray-400 mt-1">Unggah rilis pers resmi atau kustom banner pengumuman atas.</p>
               </div>
               <ManageBerita />
             </div>
           )}
 
-          {/* TAB PROKER ADMIN */}
+          {/* TAB PROKER & AGENDA */}
           {activeTab === 'proker_admin' && (
             <div className="space-y-6">
               <div>

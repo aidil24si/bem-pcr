@@ -10,6 +10,10 @@ export default function ManageBerita() {
   const [annList, setAnnList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Search and Filter States for News
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterKategori, setFilterKategori] = useState('Semua');
+
   // Form Berita
   const [editingBeritaId, setEditingBeritaId] = useState(null);
   const [judul, setJudul] = useState('');
@@ -276,24 +280,55 @@ export default function ManageBerita() {
               </div>
             </form>
 
-            {/* List Berita */}
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-              {beritaList.map((b) => (
-                <div key={b.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-4">
-                  <div className="truncate">
-                    <h4 className="font-bold text-white truncate">{b.judul}</h4>
-                    <span className="text-[9px] text-gray-500">{b.kategori} · Oleh: {b.pembuat}</span>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => handleEditBerita(b)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </button>
-                    <button onClick={() => handleDeleteBerita(b.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {/* List Berita with Search and Filter */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Cari berita..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-grow bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                />
+                <select
+                  value={filterKategori}
+                  onChange={(e) => setFilterKategori(e.target.value)}
+                  className="bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none"
+                >
+                  <option value="Semua">Semua Kategori</option>
+                  {KATEGORI_OPTIONS.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                {beritaList
+                  .filter((b) => {
+                    const matchSearch =
+                      b.judul.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      b.isi.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      b.pembuat.toLowerCase().includes(searchQuery.toLowerCase());
+                    const matchCat = filterKategori === 'Semua' || b.kategori === filterKategori;
+                    return matchSearch && matchCat;
+                  })
+                  .map((b) => (
+                    <div key={b.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-4">
+                      <div className="truncate">
+                        <h4 className="font-bold text-white truncate">{b.judul}</h4>
+                        <span className="text-[9px] text-gray-500">{b.kategori} · Oleh: {b.pembuat}</span>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => handleEditBerita(b)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDeleteBerita(b.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </CardContent>
         </Card>

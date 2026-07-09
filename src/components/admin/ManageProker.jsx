@@ -9,6 +9,11 @@ export default function ManageProker() {
   const [kemList, setKemList] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Search & Filter States
+  const [prokerSearch, setProkerSearch] = useState('');
+  const [prokerFilterKem, setProkerFilterKem] = useState('Semua');
+  const [agendaSearch, setAgendaSearch] = useState('');
+
   // Form Proker
   const [editingProkerId, setEditingProkerId] = useState(null);
   const [prokerNama, setProkerNama] = useState('');
@@ -286,26 +291,57 @@ export default function ManageProker() {
               </div>
             </form>
 
-            {/* List Proker */}
-            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-              {prokerList.map((p) => (
-                <div key={p.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-4">
-                  <div className="truncate">
-                    <h4 className="font-bold text-white truncate">{p.nama_proker}</h4>
-                    <span className="text-[9px] text-gray-500">
-                      {getMinistryName(p.kementerian_id)} · Status: <span className="text-purple-400 font-bold uppercase">{p.status}</span>
-                    </span>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => handleEditProker(p)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </button>
-                    <button onClick={() => handleDeleteProker(p.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {/* List Proker with Search and Filter */}
+            <div className="space-y-3">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Cari program kerja..."
+                  value={prokerSearch}
+                  onChange={(e) => setProkerSearch(e.target.value)}
+                  className="flex-grow bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+                />
+                <select
+                  value={prokerFilterKem}
+                  onChange={(e) => setProkerFilterKem(e.target.value)}
+                  className="bg-gray-950 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-white focus:border-purple-500 focus:outline-none max-w-[150px]"
+                >
+                  <option value="Semua">Semua Kem.</option>
+                  {kemList.map((k) => (
+                    <option key={k.id} value={k.id}>{k.nama_kementerian.split(' ')[0]}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+                {prokerList
+                  .filter((p) => {
+                    const matchSearch =
+                      p.nama_proker.toLowerCase().includes(prokerSearch.toLowerCase()) ||
+                      p.deskripsi.toLowerCase().includes(prokerSearch.toLowerCase()) ||
+                      p.penanggung_jawab.toLowerCase().includes(prokerSearch.toLowerCase());
+                    const matchKem = prokerFilterKem === 'Semua' || p.kementerian_id === prokerFilterKem;
+                    return matchSearch && matchKem;
+                  })
+                  .map((p) => (
+                    <div key={p.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-4">
+                      <div className="truncate">
+                        <h4 className="font-bold text-white truncate">{p.nama_proker}</h4>
+                        <span className="text-[9px] text-gray-500">
+                          {getMinistryName(p.kementerian_id)} · Status: <span className="text-purple-400 font-bold uppercase">{p.status}</span>
+                        </span>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => handleEditProker(p)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDeleteProker(p.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -403,24 +439,42 @@ export default function ManageProker() {
               </div>
             </form>
 
-            {/* List Agenda */}
-            <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
-              {agendaList.map((a) => (
-                <div key={a.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-4">
-                  <div className="truncate">
-                    <h4 className="font-bold text-white truncate">{a.judul_agenda}</h4>
-                    <span className="text-[9px] text-gray-500">Mulai: {a.tanggal_mulai} · {a.lokasi}</span>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    <button onClick={() => handleEditAgenda(a)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
-                      <Edit3 className="h-3.5 w-3.5" />
-                    </button>
-                    <button onClick={() => handleDeleteAgenda(a.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
+            {/* List Agenda with Search */}
+            <div className="space-y-3">
+              <input
+                type="text"
+                placeholder="Cari agenda..."
+                value={agendaSearch}
+                onChange={(e) => setAgendaSearch(e.target.value)}
+                className="w-full bg-gray-950 border border-gray-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none"
+              />
+
+              <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1">
+                {agendaList
+                  .filter((a) => {
+                    return (
+                      a.judul_agenda.toLowerCase().includes(agendaSearch.toLowerCase()) ||
+                      a.lokasi.toLowerCase().includes(agendaSearch.toLowerCase()) ||
+                      (a.deskripsi || '').toLowerCase().includes(agendaSearch.toLowerCase())
+                    );
+                  })
+                  .map((a) => (
+                    <div key={a.id} className="p-3 rounded-lg border border-gray-800 bg-gray-950/25 flex items-center justify-between text-xs gap-4">
+                      <div className="truncate">
+                        <h4 className="font-bold text-white truncate">{a.judul_agenda}</h4>
+                        <span className="text-[9px] text-gray-500">Mulai: {a.tanggal_mulai} · {a.lokasi}</span>
+                      </div>
+                      <div className="flex gap-1 shrink-0">
+                        <button onClick={() => handleEditAgenda(a)} className="p-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded">
+                          <Edit3 className="h-3.5 w-3.5" />
+                        </button>
+                        <button onClick={() => handleDeleteAgenda(a.id)} className="p-1 text-gray-400 hover:text-red-400 hover:bg-red-950/40 rounded">
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
             </div>
           </CardContent>
         </Card>
