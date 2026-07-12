@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { sanitizeAndCompressImage, validateImageMagicBytes } from '../../utils/imageSanitizer';
-import { Card, CardContent } from '../../components/ui/Card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
 import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, User, X, Layers } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
