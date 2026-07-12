@@ -6,9 +6,9 @@ import RoomManagement from '../../components/admin/RoomManagement';
 import ManageBerita from '../../components/admin/ManageBerita';
 import ManageProker from '../../components/admin/ManageProker';
 import ManageGaleri from '../../components/admin/ManageGaleri';
-import { Lock, User, LogOut, Check, X, Shield, Users, MessageSquare, Key, AlertTriangle, UserMinus, Trash2, Edit3, Image, Layers, Calendar, BookOpen, Megaphone, Menu } from 'lucide-react';
+import { LogOut, Check, X, Shield, Users, MessageSquare, Key, AlertTriangle, UserMinus, Trash2, Edit3, Image, Layers, Calendar, BookOpen, Menu } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
-import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/Dialog';
 import Toast from '../../components/ui/Toast';
 
 export default function AdminDashboard() {

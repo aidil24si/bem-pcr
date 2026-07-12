@@ -27,7 +27,6 @@ export default function RoomScheduler() {
   useDocumentTitle('Jadwal Ruangan');
   const [selectedMonth, setSelectedMonth] = useState('2025-08');
   const [bookings, setBookings] = useState([]);
-  const [uniqueRooms, setUniqueRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   
   // Modal details state
