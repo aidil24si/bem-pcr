@@ -412,10 +412,12 @@ class MockSupabaseClient {
     let currentFilter = (_item) => true;
     let orderCol = 'created_at';
     let orderAsc = false;
+    let operation = 'select'; // 'select' | 'insert' | 'update' | 'delete'
+    let payload = null;
 
     return {
       select(_columns = '*') {
-        // chainable
+        operation = 'select';
         return this;
       },
 
@@ -441,58 +443,67 @@ class MockSupabaseClient {
         return this;
       },
 
+      insert(newData) {
+        operation = 'insert';
+        payload = newData;
+        return this;
+      },
+
+      update(updateData) {
+        operation = 'update';
+        payload = updateData;
+        return this;
+      },
+
+      delete() {
+        operation = 'delete';
+        return this;
+      },
+
       async then(resolve) {
-        let result = data.filter(currentFilter);
-        result.sort((a, b) => {
-          const valA = a[orderCol];
-          const valB = b[orderCol];
-          if (valA < valB) return orderAsc ? -1 : 1;
-          if (valA > valB) return orderAsc ? 1 : -1;
-          return 0;
-        });
-        resolve({ data: result, error: null });
-      },
-
-      async insert(newData) {
-        const records = Array.isArray(newData) ? newData : [newData];
-        const updatedRecords = records.map((r) => ({
-          id: r.id || `mock-${Math.random().toString(36).substr(2, 9)}`,
-          created_at: new Date().toISOString(),
-          ...r,
-        }));
-
-        data.push(...updatedRecords);
-        localStorage.setItem(`mock_${table}`, JSON.stringify(data));
-        return { data: updatedRecords, error: null };
-      },
-
-      async update(updateData) {
-        // Update elements that pass the current chain filter
-        let updatedCount = 0;
-        data = data.map((item) => {
-          if (currentFilter(item)) {
-            updatedCount++;
-            return { ...item, ...updateData };
-          }
-          return item;
-        });
-
-        localStorage.setItem(`mock_${table}`, JSON.stringify(data));
-        return { data: null, count: updatedCount, error: null };
-      },
-
-      async delete() {
-        let deletedCount = 0;
-        data = data.filter((item) => {
-          if (currentFilter(item)) {
-            deletedCount++;
-            return false; // Remove
-          }
-          return true;
-        });
-
-        localStorage.setItem(`mock_${table}`, JSON.stringify(data));
-        return { data: null, count: deletedCount, error: null };
+        if (operation === 'select') {
+          let result = data.filter(currentFilter);
+          result.sort((a, b) => {
+            const valA = a[orderCol];
+            const valB = b[orderCol];
+            if (valA < valB) return orderAsc ? -1 : 1;
+            if (valA > valB) return orderAsc ? 1 : -1;
+            return 0;
+          });
+          resolve({ data: result, error: null });
+        } else if (operation === 'update') {
+          let updatedCount = 0;
+          data = data.map((item) => {
+            if (currentFilter(item)) {
+              updatedCount++;
+              return { ...item, ...payload };
+            }
+            return item;
+          });
+          localStorage.setItem(`mock_${table}`, JSON.stringify(data));
+          resolve({ data: null, count: updatedCount, error: null });
+        } else if (operation === 'delete') {
+          let deletedCount = 0;
+          data = data.filter((item) => {
+            if (currentFilter(item)) {
+              deletedCount++;
+              return false; // Remove
+            }
+            return true;
+          });
+          localStorage.setItem(`mock_${table}`, JSON.stringify(data));
+          resolve({ data: null, count: deletedCount, error: null });
+        } else if (operation === 'insert') {
+          const records = Array.isArray(payload) ? payload : [payload];
+          const updatedRecords = records.map((r) => ({
+            id: r.id || `mock-${Math.random().toString(36).substr(2, 9)}`,
+            created_at: new Date().toISOString(),
+            ...r,
+          }));
+          data.push(...updatedRecords);
+          localStorage.setItem(`mock_${table}`, JSON.stringify(data));
+          resolve({ data: updatedRecords, error: null });
+        }
       },
     };
   }
