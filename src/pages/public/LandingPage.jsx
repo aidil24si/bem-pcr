@@ -183,7 +183,7 @@ export default function LandingPage({ onNavigate }) {
   return (
     <div className="space-y-0">
       {/* ── HERO SECTION ──────────────────────────────────── */}
-      <section className="relative min-h-[92vh] flex flex-col items-center justify-center text-center px-4 pb-24 sm:pb-32 overflow-hidden">
+      <section className="relative min-h-[92vh] min-h-[680px] lg:min-h-[780px] flex flex-col items-center justify-center text-center px-4 pb-24 sm:pb-32 overflow-hidden">
         {/* Decorative blobs */}
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-700/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-indigo-700/15 rounded-full blur-3xl pointer-events-none" />

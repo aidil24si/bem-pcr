@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Calendar, MapPin, Clock, Info } from 'lucide-react';
+import { Calendar, MapPin, Clock } from 'lucide-react';
 
 export default function AgendaBEM() {
   const [agendaList, setAgendaList] = useState([]);

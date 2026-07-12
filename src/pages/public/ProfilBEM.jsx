@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabaseClient';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { BookOpen, Target, Award, ShieldAlert, History, Landmark, Sparkles, Compass } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
@@ -92,10 +93,58 @@ const KABINET_PERIODS = [
 
 export default function ProfilBEM() {
   useDocumentTitle('Profil BEM');
+  const [cabinetPeriods, setCabinetPeriods] = useState(KABINET_PERIODS);
   const [selectedPeriod, setSelectedPeriod] = useState('2025/2026');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchCabinets = async () => {
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('kabinet_periode')
+          .select('*')
+          .order('periode', { ascending: false });
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          const formatted = data.map((d) => ({
+            periode: d.periode,
+            namaKabinet: d.nama_kabinet,
+            tagline: d.tagline,
+            deskripsiKabinet: d.deskripsi_kabinet,
+            visi: d.visi,
+            misi: Array.isArray(d.misi) 
+              ? d.misi 
+              : typeof d.misi === 'string' 
+                ? JSON.parse(d.misi) 
+                : [],
+            tujuan: Array.isArray(d.tujuan) 
+              ? d.tujuan 
+              : typeof d.tujuan === 'string' 
+                ? JSON.parse(d.tujuan) 
+                : [],
+            logoFilosofi: Array.isArray(d.logo_filosofi) 
+              ? d.logo_filosofi 
+              : typeof d.logo_filosofi === 'string' 
+                ? JSON.parse(d.logo_filosofi) 
+                : [],
+          }));
+          setCabinetPeriods(formatted);
+          setSelectedPeriod(formatted[0].periode);
+        }
+      } catch (err) {
+        console.log('Using local cabinet periods fallback data.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCabinets();
+  }, []);
 
   // Find active cabinet details
-  const activeCabinet = KABINET_PERIODS.find(k => k.periode === selectedPeriod) || KABINET_PERIODS[0];
+  const activeCabinet = cabinetPeriods.find(k => k.periode === selectedPeriod) || cabinetPeriods[0];
 
   return (
     <div className="space-y-12 max-w-6xl mx-auto px-4 py-8">
@@ -161,7 +210,7 @@ export default function ProfilBEM() {
             <p className="text-xs text-gray-400">Pilih periode kepengurusan untuk melihat visi-misi kabinet sejarah.</p>
           </div>
           <div className="flex bg-gray-950 p-1.5 rounded-xl border border-gray-800/80 max-w-sm">
-            {KABINET_PERIODS.map(k => (
+            {cabinetPeriods.map(k => (
               <button
                 key={k.periode}
                 onClick={() => setSelectedPeriod(k.periode)}

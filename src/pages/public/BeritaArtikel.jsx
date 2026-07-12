@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
-import { BookOpen, Calendar, User, ArrowLeft, Search, Tag } from 'lucide-react';
+import { Card } from '../../components/ui/Card';
+import { BookOpen, Calendar, User, ArrowLeft, Search } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
 import { CardGridSkeleton } from '../../components/ui/Skeleton';

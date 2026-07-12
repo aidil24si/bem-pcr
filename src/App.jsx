@@ -31,28 +31,32 @@ export default function App() {
           </div>
         }>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={
+              <div className="animate-page-transition">
+                <LandingPage />
+              </div>
+            } />
             
             <Route path="/profil" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <ProfilBEM />
               </div>
             } />
             
             <Route path="/kabinet" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <CabinetHierarchy />
               </div>
             } />
 
             <Route path="/proker" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <ProkerBEM />
               </div>
             } />
 
             <Route path="/berita" element={
-              <div className="max-w-6xl mx-auto px-4 py-10 space-y-16">
+              <div className="max-w-6xl mx-auto px-4 py-10 space-y-16 animate-page-transition">
                 <BeritaArtikel />
                 <hr className="border-gray-950" />
                 <AgendaBEM />
@@ -60,34 +64,38 @@ export default function App() {
             } />
 
             <Route path="/galeri" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <GaleriBEM />
               </div>
             } />
 
             <Route path="/aspirasi" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <AspirasiPublic />
               </div>
             } />
 
             <Route path="/ruangan" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <RoomScheduler />
               </div>
             } />
 
             <Route path="/kontak" element={
-              <div className="max-w-6xl mx-auto px-4 py-10">
+              <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                 <KontakBEM />
               </div>
             } />
 
-            <Route path="/login" element={<Login />} />
+            <Route path="/login" element={
+              <div className="animate-page-transition">
+                <Login />
+              </div>
+            } />
 
             <Route path="/admin" element={
               <ProtectedRoute>
-                <div className="max-w-6xl mx-auto px-4 py-10">
+                <div className="max-w-6xl mx-auto px-4 py-10 animate-page-transition">
                   <AdminDashboard />
                 </div>
               </ProtectedRoute>
