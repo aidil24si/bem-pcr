@@ -148,7 +148,7 @@ export default function AspirasiPublic() {
     setSubmitSuccess(false);
 
     try {
-      if (!prodi.trim()) throw new Error('Program studi harus diisi.');
+      if (!isAnonim && !prodi.trim()) throw new Error('Program studi harus diisi.');
       if (!deskripsi.trim()) throw new Error('Deskripsi aspirasi harus diisi.');
 
       let finalBuktiUrl = null;
@@ -183,7 +183,7 @@ export default function AspirasiPublic() {
       const { error: insertError } = await supabase.from('aspirasi').insert({
         tipe_isu: tipeIsu,
         identitas: identitas,
-        prodi: prodi,
+        prodi: isAnonim ? 'Anonim' : prodi,
         deskripsi: deskripsi,
         bukti_url: finalBuktiUrl,
         status: 'review', // Ke status review untuk dimoderasi admin
@@ -317,21 +317,21 @@ export default function AspirasiPublic() {
                         />
                       </div>
                     </div>
+
+                    {/* Program Studi */}
+                    <div>
+                      <label className="text-xs font-medium text-gray-400">Program Studi</label>
+                      <input
+                        type="text"
+                        required
+                        value={prodi}
+                        onChange={(e) => setProdi(e.target.value)}
+                        placeholder="Contoh: Teknik Informatika"
+                        className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                      />
+                    </div>
                   </div>
                 )}
-
-                {/* Program Studi */}
-                <div>
-                  <label className="text-sm font-medium text-gray-300">Program Studi</label>
-                  <input
-                    type="text"
-                    required
-                    value={prodi}
-                    onChange={(e) => setProdi(e.target.value)}
-                    placeholder="Contoh: Teknik Informatika"
-                    className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
-                  />
-                </div>
 
                 {/* Deskripsi */}
                 <div>
