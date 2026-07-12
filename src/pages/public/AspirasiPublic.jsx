@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { sanitizeAndCompressImage } from '../../utils/imageSanitizer';
+import { sanitizeAndCompressImage, validateImageMagicBytes } from '../../utils/imageSanitizer';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
 import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, User, X } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
@@ -106,9 +106,31 @@ export default function AspirasiPublic() {
     item.deskripsi.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
+    setErrorMessage('');
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // Limit file size to 2MB (2 * 1024 * 1024 bytes)
+      const MAX_SIZE = 2 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        setErrorMessage('Gagal memilih file: Ukuran file gambar maksimal adalah 2MB.');
+        e.target.value = ''; // Reset file input element
+        setBuktiFile(null);
+        setPreviewUrl('');
+        return;
+      }
+
+      // Validate Magic Bytes to confirm it is a valid image (JPEG, PNG, GIF, WEBP)
+      const isValidImage = await validateImageMagicBytes(file);
+      if (!isValidImage) {
+        setErrorMessage('Gagal memilih file: File bukan gambar yang valid. Harap unggah berkas dengan format JPEG, PNG, GIF, atau WEBP.');
+        e.target.value = ''; // Reset file input element
+        setBuktiFile(null);
+        setPreviewUrl('');
+        return;
+      }
+
       setBuktiFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }

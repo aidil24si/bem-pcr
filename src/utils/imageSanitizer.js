@@ -1,4 +1,59 @@
 /**
+ * Validates file signatures (Magic Bytes) to ensure the uploaded file
+ * is actually a valid image (JPEG, PNG, GIF, or WEBP) and not a renamed malicious payload.
+ * 
+ * @param {File|Blob} file - The file to validate.
+ * @returns {Promise<boolean>} A promise resolving to true if valid, false otherwise.
+ */
+export function validateImageMagicBytes(file) {
+  return new Promise((resolve) => {
+    if (!file || !(file instanceof Blob)) {
+      resolve(false);
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = (e) => {
+      if (e.target.readyState !== FileReader.DONE) {
+        resolve(false);
+        return;
+      }
+
+      const arr = new Uint8Array(e.target.result);
+      if (arr.length < 12) {
+        resolve(false);
+        return;
+      }
+
+      // Convert first 4 bytes to hex string
+      let hexFirst4 = '';
+      for (let i = 0; i < 4; i++) {
+        hexFirst4 += arr[i].toString(16).toUpperCase().padStart(2, '0');
+      }
+
+      const isPng = hexFirst4 === '89504E47';
+      const isGif = hexFirst4 === '47494638';
+      const isJpeg = hexFirst4.startsWith('FFD8FF');
+
+      // WEBP: "RIFF" (52 49 46 46) at offset 0, "WEBP" (57 45 42 50) at offset 8-11
+      let isWebp = false;
+      if (hexFirst4 === '52494646') {
+        let hexOffset8_11 = '';
+        for (let i = 8; i < 12; i++) {
+          hexOffset8_11 += arr[i].toString(16).toUpperCase().padStart(2, '0');
+        }
+        isWebp = hexOffset8_11 === '57454250';
+      }
+
+      resolve(isPng || isGif || isJpeg || isWebp);
+    };
+
+    const blob = file.slice(0, 12);
+    reader.readAsArrayBuffer(blob);
+  });
+}
+
+/**
  * Sanitizes an image by redrawing it onto a canvas to strip EXIF metadata,
  * compresses it to JPEG format with a quality factor, and returns a new File object
  * named with a random UUID.

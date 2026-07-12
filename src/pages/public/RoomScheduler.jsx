@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
-import { Calendar, Clock, Building, Users, MoveHorizontal } from 'lucide-react';
+import { Calendar, Clock, Building, Users, Info } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
 import { TableSkeleton } from '../../components/ui/Skeleton';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/Dialog';
 
 const MONTHS = [
   { label: 'Agustus 2025', value: '2025-08' },
@@ -28,8 +29,12 @@ export default function RoomScheduler() {
   const [bookings, setBookings] = useState([]);
   const [uniqueRooms, setUniqueRooms] = useState([]);
   const [loading, setLoading] = useState(true);
+  
+  // Modal details state
+  const [activeDate, setActiveDate] = useState(null);
+  const [activeBookings, setActiveBookings] = useState([]);
 
-  // Fetch all bookings to extract unique rooms & map active month
+  // Fetch all bookings
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -74,19 +79,55 @@ export default function RoomScheduler() {
 
   const daysList = getDaysInMonth(selectedMonth);
 
-  // Formatter helpers
-  const formatDayName = (dateStr) => {
-    const date = new Date(dateStr);
-    const dayNum = date.getDate();
-    const dayName = date.toLocaleDateString('id-ID', { weekday: 'short' });
-    return `${dayNum} (${dayName})`;
+  // Get offset blank cells for Monday-start calendar grid
+  const getFirstDayOffset = (yearMonth) => {
+    const [year, month] = yearMonth.split('-').map(Number);
+    const firstDay = new Date(year, month - 1, 1);
+    const day = firstDay.getDay(); // 0 = Sun, 1 = Mon ...
+    return (day + 6) % 7; // Map to Mon = 0, Tue = 1, ... Sun = 6
   };
 
-  const getBookingFor = (dateStr, room) => {
-    return bookings.find(
-      (b) => b.tanggal === dateStr && b.ruangan_utama === room
-    );
+  const offset = getFirstDayOffset(selectedMonth);
+
+  // Styling Helpers for Rooms
+  const getRoomBadgeStyles = (room) => {
+    const normalized = room.toLowerCase();
+    if (normalized.includes('aula') || normalized.includes('auditorium')) {
+      return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+    }
+    if (normalized.includes('rapat') || normalized.includes('meeting')) {
+      return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+    }
+    if (normalized.includes('sekre') || normalized.includes('sekretariat')) {
+      return 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+    }
+    return 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20';
   };
+
+  const getRoomDotStyles = (room) => {
+    const normalized = room.toLowerCase();
+    if (normalized.includes('aula') || normalized.includes('auditorium')) {
+      return 'bg-purple-500';
+    }
+    if (normalized.includes('rapat') || normalized.includes('meeting')) {
+      return 'bg-blue-500';
+    }
+    if (normalized.includes('sekre') || normalized.includes('sekretariat')) {
+      return 'bg-emerald-500';
+    }
+    return 'bg-indigo-500';
+  };
+
+  const formatFullDate = (dateStr) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  };
+
+  const getBookingsForDate = (dateStr) => {
+    return bookings.filter((b) => b.tanggal === dateStr);
+  };
+
+  const WEEKDAYS = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
   return (
     <div className="space-y-8">
@@ -128,89 +169,213 @@ export default function RoomScheduler() {
                   <span>{daysList.length} Hari</span>
                 </div>
               </CardHeader>
-              <CardContent className="p-0 relative">
-                
-                {/* Horizontal Swipe Indicator for Mobile */}
-                <div className="block md:hidden bg-purple-600/10 border-b border-purple-500/15 py-2 px-4 text-center text-[10px] font-extrabold text-purple-300 flex items-center justify-center gap-1.5">
-                  <MoveHorizontal className="h-3.5 w-3.5 animate-pulse" />
-                  <span>Geser ke samping (swipe) untuk melihat seluruh kolom ruangan</span>
-                </div>
+              <CardContent className="p-4 md:p-6">
 
                 {loading ? (
-                  <div className="p-6">
+                  <div className="py-12">
                     <TableSkeleton />
                   </div>
-                ) : uniqueRooms.length === 0 ? (
-                  <div className="text-center py-16">
-                    <Building className="h-10 w-10 mx-auto text-gray-700 mb-2" />
-                    <p className="text-gray-500 text-sm font-semibold">Belum ada ruangan yang dipinjam bulan ini.</p>
-                  </div>
                 ) : (
-                  /* Horizontal Scroll Container */
-                  <div className="overflow-x-auto w-full">
-                    <div className="min-w-[768px] w-full">
-                      <table className="w-full border-collapse text-left text-sm text-gray-300">
-                        <thead className="bg-gray-950/65 border-b border-gray-800 text-gray-400">
-                          <tr>
-                            <th className="py-4 px-4 font-semibold w-28 border-r border-gray-800 text-xs uppercase tracking-wider">Tanggal</th>
-                            {uniqueRooms.map((room) => (
-                              <th key={room} className="py-4 px-6 font-semibold border-r border-gray-800 last:border-r-0">
-                                <div className="flex items-center gap-2 text-white text-xs uppercase tracking-wider">
-                                  <Building className="h-4 w-4 text-purple-500 shrink-0" />
-                                  <span>{room}</span>
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-800">
-                          {daysList.map((dateStr) => {
-                            const isWeekend = new Date(dateStr).getDay() === 0 || new Date(dateStr).getDay() === 6;
-                            return (
-                              <tr key={dateStr} className={`hover:bg-gray-800/10 transition-colors ${isWeekend ? 'bg-gray-950/25' : ''}`}>
-                                <td className="py-3.5 px-4 font-bold border-r border-gray-800 text-gray-400 text-xs whitespace-nowrap">
-                                  {formatDayName(dateStr)}
-                                </td>
-                                {uniqueRooms.map((room) => {
-                                  const booking = getBookingFor(dateStr, room);
-                                  return (
-                                    <td key={room} className="py-3 px-5 border-r border-gray-800 last:border-r-0">
-                                      {booking ? (
-                                        <div className="p-3 rounded-xl bg-purple-950/40 border border-purple-500/20 space-y-1.5 text-xs shadow-lg shadow-purple-950/5">
-                                          <div className="font-bold text-purple-200 flex items-center gap-1.5">
-                                            <Users className="h-3.5 w-3.5 text-purple-400 shrink-0" />
-                                            <span>{booking.nama_ormawa}</span>
-                                          </div>
-                                          <div className="text-gray-300 font-medium line-clamp-1">{booking.nama_agenda}</div>
-                                          <div className="flex items-center gap-1.5 text-[10px] text-purple-300 font-semibold">
-                                            <Clock className="h-3.5 w-3.5 shrink-0" />
-                                            <span>{booking.jam_acara}</span>
-                                          </div>
-                                          {booking.ruangan_tambahan && (
-                                            <div className="text-[10px] text-gray-400 bg-gray-950 px-1.5 py-0.5 rounded inline-block mt-1 font-medium">
-                                              + {booking.ruangan_tambahan}
-                                            </div>
-                                          )}
-                                        </div>
-                                      ) : (
-                                        <span className="text-gray-700 text-xs">-</span>
-                                      )}
-                                    </td>
-                                  );
-                                })}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                  <>
+                    {/* Weekdays Header */}
+                    <div className="grid grid-cols-7 gap-1.5 md:gap-3 text-center font-bold text-[10px] md:text-xs text-gray-400 mb-2 md:mb-3">
+                      {WEEKDAYS.map((day) => (
+                        <div key={day} className="py-1.5 md:py-2 bg-gray-950/40 rounded-lg border border-gray-800/40">
+                          {day}
+                        </div>
+                      ))}
                     </div>
-                  </div>
+
+                    {/* Days Grid */}
+                    <div className="grid grid-cols-7 gap-1.5 md:gap-3">
+                      {/* Offset blanks */}
+                      {Array.from({ length: offset }).map((_, idx) => (
+                        <div key={`empty-${idx}`} className="aspect-square md:min-h-[110px] rounded-xl bg-gray-950/10 border border-gray-900/10 opacity-30" />
+                      ))}
+
+                      {/* Days list */}
+                      {daysList.map((dateStr) => {
+                        const dayBookings = getBookingsForDate(dateStr);
+                        const dayNum = parseInt(dateStr.split('-')[2]);
+                        
+                        // Check if dateStr matches today's local date
+                        const todayStr = new Date().toISOString().split('T')[0];
+                        const isToday = dateStr === todayStr;
+
+                        const dayOfWeek = new Date(dateStr).getDay();
+                        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+                        return (
+                          <div
+                            key={dateStr}
+                            onClick={() => {
+                              setActiveDate(dateStr);
+                              setActiveBookings(dayBookings);
+                            }}
+                            className={`aspect-square md:aspect-auto md:min-h-[110px] p-2 md:p-3 rounded-xl border bg-gray-900/20 hover:bg-gray-800/40 backdrop-blur-sm cursor-pointer transition-all hover:border-purple-500/50 hover:shadow-lg hover:shadow-purple-500/5 flex flex-col justify-between group ${
+                              isToday 
+                                ? 'border-purple-500 ring-1 ring-purple-500 shadow-lg shadow-purple-500/10' 
+                                : isWeekend 
+                                  ? 'border-gray-850 bg-gray-950/30' 
+                                  : 'border-gray-850'
+                            }`}
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className={`text-xs md:text-sm font-bold ${isToday ? 'text-purple-400' : 'text-gray-400 group-hover:text-white'}`}>
+                                {dayNum}
+                              </span>
+                              {dayBookings.length > 0 && (
+                                <span className="text-[8px] md:text-[9px] font-extrabold px-1.5 py-0.5 rounded-full bg-purple-600/10 border border-purple-500/20 text-purple-400">
+                                  {dayBookings.length}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Bookings Indicator */}
+                            <div className="mt-1 md:mt-2 space-y-1 overflow-hidden">
+                              {/* Desktop badge lists */}
+                              <div className="hidden md:block space-y-1">
+                                {dayBookings.slice(0, 2).map((b) => (
+                                  <div
+                                    key={b.id}
+                                    className={`text-[9px] font-bold px-1.5 py-0.5 rounded border truncate ${getRoomBadgeStyles(b.ruangan_utama)}`}
+                                    title={`${b.nama_ormawa}: ${b.nama_agenda}`}
+                                  >
+                                    {b.ruangan_utama}
+                                  </div>
+                                ))}
+                                {dayBookings.length > 2 && (
+                                  <div className="text-[8px] text-gray-500 font-extrabold pl-1.5">
+                                    + {dayBookings.length - 2} lainnya
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Mobile dots indicator */}
+                              <div className="flex md:hidden flex-wrap gap-1 justify-center">
+                                {dayBookings.map((b) => (
+                                  <span
+                                    key={b.id}
+                                    className={`h-1.5 w-1.5 rounded-full ${getRoomDotStyles(b.ruangan_utama)}`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Quick Legend Info */}
+                    <div className="mt-6 flex flex-wrap gap-4 items-center justify-center p-3 rounded-xl border border-gray-800/40 bg-gray-950/20 text-[10px] md:text-xs">
+                      <span className="text-gray-500 font-semibold flex items-center gap-1">
+                        <Info className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+                        <span>Legenda Ruangan:</span>
+                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-purple-500" />
+                        <span className="text-gray-400">Aula Utama / Auditorium</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-blue-500" />
+                        <span className="text-gray-400">Ruang Rapat</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                        <span className="text-gray-400">Sekretariat BEM</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                        <span className="text-gray-400">Ruangan Lain</span>
+                      </div>
+                    </div>
+                  </>
                 )}
+
               </CardContent>
             </Card>
           </TabsContent>
         ))}
       </Tabs>
+
+      {/* ── Dialog Details Modal ────────────────────────────────── */}
+      <Dialog open={!!activeDate} onOpenChange={() => setActiveDate(null)}>
+        <DialogHeader>
+          <DialogTitle className="text-base md:text-lg">
+            Jadwal Reservasi Ruangan
+          </DialogTitle>
+          <DialogDescription className="text-xs text-purple-400 font-bold mt-1">
+            {activeDate && formatFullDate(activeDate)}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin">
+          {activeBookings.length === 0 ? (
+            <div className="text-center py-10">
+              <Building className="h-10 w-10 mx-auto text-gray-700 mb-2" />
+              <p className="text-gray-400 text-xs font-semibold">Tidak ada agenda reservasi ruangan pada tanggal ini.</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Ruangan tersedia penuh untuk digunakan.</p>
+            </div>
+          ) : (
+            activeBookings.map((b) => (
+              <div key={b.id} className="p-4 rounded-xl border border-gray-800 bg-gray-900/40 space-y-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">
+                      Organisasi / Ormawa
+                    </span>
+                    <h4 className="font-bold text-white text-xs md:text-sm flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-purple-400 shrink-0" />
+                      <span>{b.nama_ormawa}</span>
+                    </h4>
+                  </div>
+                  <span className={`text-[9px] font-bold px-2 py-0.5 rounded border uppercase tracking-wider ${getRoomBadgeStyles(b.ruangan_utama)}`}>
+                    {b.ruangan_utama}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">
+                    Nama Agenda Kegiatan
+                  </span>
+                  <p className="text-xs text-gray-200 font-semibold">{b.nama_agenda}</p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-gray-950">
+                  <div>
+                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">
+                      Waktu Acara
+                    </span>
+                    <div className="flex items-center gap-1.5 text-xs text-purple-300 font-bold">
+                      <Clock className="h-3.5 w-3.5 shrink-0" />
+                      <span>{b.jam_acara}</span>
+                    </div>
+                  </div>
+                  {b.ruangan_tambahan && (
+                    <div>
+                      <span className="text-[9px] font-bold text-gray-500 uppercase tracking-wider block mb-0.5">
+                        Fasilitas Lain
+                      </span>
+                      <span className="text-[9px] text-gray-300 bg-gray-950 px-1.5 py-0.5 rounded inline-block font-semibold">
+                        {b.ruangan_tambahan}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={() => setActiveDate(null)}
+            className="px-4 py-2 rounded-lg bg-gray-900 text-gray-400 hover:text-white text-xs cursor-pointer border border-gray-800 transition-colors"
+          >
+            Tutup
+          </button>
+        </div>
+      </Dialog>
     </div>
   );
 }
