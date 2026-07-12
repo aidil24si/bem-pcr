@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { sanitizeAndCompressImage, validateImageMagicBytes } from '../../utils/imageSanitizer';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
-import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, User, X } from 'lucide-react';
+import { Card, CardContent } from '../../components/ui/Card';
+import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, User, X, Layers } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
 
@@ -34,24 +34,34 @@ export default function AspirasiPublic() {
   }, [previewUrl]);
 
   // Feed State
-  const [aspirasiList, setAspirasiList] = useState([]);
+  const [releasesList, setReleasesList] = useState([]);
+  const [allAspirations, setAllAspirations] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [feedLoading, setFeedLoading] = useState(true);
 
-  // Fetch published aspirations
-  const fetchAspirations = async () => {
+  // Fetch published releases & associated aspirations
+  const fetchPublicData = async () => {
     setFeedLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('aspirasi')
+      // 1. Fetch published releases
+      const { data: relData, error: relError } = await supabase
+        .from('rilis_advokasi')
         .select('*')
         .eq('status', 'diterbitkan')
-        .order('created_at', { ascending: false });
+        .order('tanggal_rilis', { ascending: false });
 
-      if (error) throw error;
-      setAspirasiList(data || []);
+      if (relError) throw relError;
+      setReleasesList(relData || []);
+
+      // 2. Fetch all aspirations that are linked to a release
+      const { data: aspData, error: aspError } = await supabase
+        .from('aspirasi')
+        .select('*');
+
+      if (aspError) throw aspError;
+      setAllAspirations(aspData || []);
     } catch (err) {
-      console.error('Error fetching aspirations:', err);
+      console.error('Error fetching public advokasi data:', err);
     } finally {
       setFeedLoading(false);
     }
@@ -73,7 +83,7 @@ export default function AspirasiPublic() {
     if (savedProdi) setProdi(savedProdi);
     if (savedDesc) setDeskripsi(savedDesc);
 
-    fetchAspirations();
+    fetchPublicData();
   }, []);
 
   // Save drafts to sessionStorage
@@ -101,10 +111,38 @@ export default function AspirasiPublic() {
     sessionStorage.setItem('asp_desc', deskripsi);
   }, [deskripsi]);
 
-  // Filter local aspirations based on searchQuery (Case-Insensitive)
-  const filteredAspirations = aspirasiList.filter((item) =>
-    item.deskripsi.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filter and Join search logic: Rilis Advokasi (FR-1.5)
+  const filteredReleases = useMemo(() => {
+    if (!searchQuery.trim()) return releasesList;
+
+    const query = searchQuery.toLowerCase();
+    const matchedReleaseIds = new Set();
+
+    // 1. Direct search in releases
+    releasesList.forEach((rel) => {
+      const matchJudul = rel.judul_isu && rel.judul_isu.toLowerCase().includes(query);
+      const matchPembahasan = rel.pembahasan_offline && rel.pembahasan_offline.toLowerCase().includes(query);
+      const matchKategori = rel.kategori_isu && rel.kategori_isu.toLowerCase().includes(query);
+      
+      if (matchJudul || matchPembahasan || matchKategori) {
+        matchedReleaseIds.add(rel.id);
+      }
+    });
+
+    // 2. Indirect search in consolidated student aspirations
+    allAspirations.forEach((asp) => {
+      if (asp.rilis_id) {
+        const matchDesc = asp.deskripsi && asp.deskripsi.toLowerCase().includes(query);
+        const matchProdi = asp.prodi && asp.prodi.toLowerCase().includes(query);
+        
+        if (matchDesc || matchProdi) {
+          matchedReleaseIds.add(asp.rilis_id);
+        }
+      }
+    });
+
+    return releasesList.filter((rel) => matchedReleaseIds.has(rel.id));
+  }, [searchQuery, releasesList, allAspirations]);
 
   const handleFileChange = async (e) => {
     setErrorMessage('');
@@ -179,14 +217,14 @@ export default function AspirasiPublic() {
       // Build identity object
       const identitas = isAnonim ? null : { nama, nim };
 
-      // 3. Insert into Supabase table 'aspirasi' (status default to 'draft' or 'review' for moderation)
+      // 3. Insert into Supabase table 'aspirasi' (status columns deprecated, rilis_id defaults to null)
       const { error: insertError } = await supabase.from('aspirasi').insert({
         tipe_isu: tipeIsu,
         identitas: identitas,
         prodi: isAnonim ? 'Anonim' : prodi,
         deskripsi: deskripsi,
         bukti_url: finalBuktiUrl,
-        status: 'review', // Ke status review untuk dimoderasi admin
+        rilis_id: null,
       });
 
       if (insertError) throw insertError;
@@ -210,8 +248,8 @@ export default function AspirasiPublic() {
       sessionStorage.removeItem('asp_desc');
 
       setSubmitSuccess(true);
-      // Refetch aspirations in case some auto-publish rules or to verify list
-      fetchAspirations();
+      // Refetch releases & aspirations
+      fetchPublicData();
     } catch (err) {
       setErrorMessage(err.message || 'Terjadi kesalahan saat mengirim aspirasi.');
     } finally {
@@ -431,7 +469,7 @@ export default function AspirasiPublic() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari aspirasi berdasarkan kata kunci..."
+              placeholder="Cari respon rilis advokasi resmi BEM..."
               className="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-full"
             />
           </div>
@@ -440,78 +478,79 @@ export default function AspirasiPublic() {
           {feedLoading ? (
             <div className="text-center py-12">
               <div className="h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400 text-sm">Memuat data aspirasi...</p>
+              <p className="text-gray-400 text-sm">Memuat data advokasi...</p>
             </div>
-          ) : filteredAspirations.length === 0 ? (
+          ) : filteredReleases.length === 0 ? (
             <div className="text-center py-16 border border-gray-800 rounded-xl bg-gray-900/20">
-              <MessageSquare className="h-10 w-10 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-400 font-medium">Belum ada aspirasi diterbitkan</p>
-              <p className="text-gray-500 text-sm mt-1">Gunakan kotak pencarian atau jadilah yang pertama beraspirasi.</p>
+              <Layers className="h-10 w-10 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-400 font-medium">Belum ada Rilis Advokasi resmi</p>
+              <p className="text-gray-500 text-sm mt-1">Gunakan kotak pencarian untuk mencocokkan keluhan lama Anda.</p>
             </div>
           ) : (
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
-              {filteredAspirations.map((item) => (
-                <Card key={item.id} className="border-gray-800 bg-gray-900/40 hover:bg-gray-900/60 transition-colors">
-                  <CardContent className="p-5 space-y-4">
-                    {/* Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="flex items-center gap-2">
-                        {item.identitas ? (
-                          <div className="flex items-center gap-1 text-purple-400 text-xs font-semibold bg-purple-500/10 py-1 px-2.5 rounded-full border border-purple-500/20">
-                            <User className="h-3.5 w-3.5" />
-                            <span>{item.identitas.nama} ({item.identitas.nim})</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1 text-gray-400 text-xs font-semibold bg-gray-800/80 py-1 px-2.5 rounded-full border border-gray-700">
-                            <EyeOff className="h-3.5 w-3.5" />
-                            <span>Anonim</span>
-                          </div>
-                        )}
-                        <span className="text-xs text-gray-500">
-                          {new Date(item.created_at).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'long',
-                            year: 'numeric',
-                          })}
+              {filteredReleases.map((release) => {
+                const linkedAsps = allAspirations.filter(asp => asp.rilis_id === release.id);
+                return (
+                  <Card key={release.id} className="border-gray-800 bg-gray-900/40 hover:bg-gray-900/60 transition-colors">
+                    <CardContent className="p-5 space-y-4">
+                      {/* Header */}
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-purple-400 font-semibold bg-purple-500/10 py-1 px-2.5 rounded-full border border-purple-500/20">
+                            {release.kategori_isu}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {new Date(release.tanggal_rilis).toLocaleDateString('id-ID', {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            })}
+                          </span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-full uppercase font-bold">
+                          Rilis Resmi BEM
                         </span>
                       </div>
-                      <span
-                        className={`text-xs uppercase font-bold px-2.5 py-1 rounded-full border ${
-                          item.tipe_isu === 'tangible'
-                            ? 'bg-amber-500/10 text-amber-400 border-amber-500/25'
-                            : 'bg-blue-500/10 text-blue-400 border-blue-500/25'
-                        }`}
-                      >
-                        {item.tipe_isu === 'tangible' ? 'Fasilitas' : 'Non-Fasilitas'}
-                      </span>
-                    </div>
 
-                    {/* Prodi */}
-                    <p className="text-xs text-gray-400 font-medium">
-                      Program Studi: <span className="text-gray-200">{item.prodi}</span>
-                    </p>
+                      {/* Judul Isu */}
+                      <h3 className="text-sm md:text-base font-bold text-white leading-snug">
+                        {release.judul_isu}
+                      </h3>
 
-                    {/* Deskripsi */}
-                    <p className="text-gray-200 text-sm leading-relaxed whitespace-pre-line">
-                      {item.deskripsi}
-                    </p>
-
-                    {/* Image Attachment */}
-                    {item.bukti_url && (
-                      <div className="mt-3">
-                        <p className="text-xs text-gray-400 font-semibold mb-1">Bukti Foto Lampiran:</p>
-                        <div className="relative max-w-sm rounded-lg overflow-hidden border border-gray-800">
-                          <img
-                            src={item.bukti_url}
-                            alt="Bukti Aspirasi"
-                            className="max-h-48 object-cover w-full hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
+                      {/* Pembahasan Offline */}
+                      <div className="space-y-1.5">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Hasil Pembahasan & Resolusi BEM:</p>
+                        <p className="text-gray-200 text-xs md:text-sm leading-relaxed whitespace-pre-line bg-gray-950/40 p-3 rounded-lg border border-gray-900">
+                          {release.pembahasan_offline}
+                        </p>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+
+                      {/* Associated student aspirations list */}
+                      {linkedAsps.length > 0 && (
+                        <div className="pt-3 border-t border-gray-800/60 space-y-2">
+                          <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">
+                            Aspirasi Terkonsolidasi ({linkedAsps.length}):
+                          </p>
+                          <div className="space-y-2">
+                            {linkedAsps.map((asp) => (
+                              <div key={asp.id} className="text-xs bg-gray-950/30 p-2.5 rounded border border-gray-900/60">
+                                <div className="flex justify-between items-center mb-1 text-[9px] font-semibold text-gray-500">
+                                  <span>{asp.identitas ? asp.identitas.nama : 'Anonim'}</span>
+                                  <span>Prodi: {asp.prodi}</span>
+                                </div>
+                                <p className="text-gray-300 leading-normal italic">"{asp.deskripsi}"</p>
+                                {asp.bukti_url && (
+                                  <span className="text-[9px] text-purple-400 mt-1 inline-block">📎 Memiliki Lampiran Foto</span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </div>

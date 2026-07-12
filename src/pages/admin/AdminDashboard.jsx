@@ -22,6 +22,13 @@ export default function AdminDashboard() {
   const [confirmDeletePengurus, setConfirmDeletePengurus] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  // Consolidation States
+  const [selectedAspirations, setSelectedAspirations] = useState([]);
+  const [isConsolidating, setIsConsolidating] = useState(false);
+  const [releaseTitle, setReleaseTitle] = useState('');
+  const [releaseCategory, setReleaseCategory] = useState('Fasilitas');
+  const [releaseDiscussion, setReleaseDiscussion] = useState('');
+
   // Dashboard Navigation State
   const [activeTab, setActiveTab] = useState('moderation'); // moderation | pengurus | ruangan | berita_admin | proker_admin | galeri_admin | offboarding
 
@@ -72,15 +79,15 @@ export default function AdminDashboard() {
         .order('hierarki_order', { ascending: true });
       setKementerianList(kemData || []);
 
-      // B. Fetch pending and review aspirations (Moderation Gate - FR-1.6)
+      // B. Fetch pending and review aspirations (Consolidation Gate - FR-1.6)
       const { data: aspData, error: aspErr } = await supabase
         .from('aspirasi')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (aspErr) throw aspErr;
-      // Filter out 'diterbitkan' so we only display 'draft' or 'review'
-      setPendingAspirations(aspData?.filter(a => a.status === 'draft' || a.status === 'review') || []);
+      // Filter out aspirations that have already been consolidated (have a rilis_id)
+      setPendingAspirations(aspData?.filter(a => !a.rilis_id) || []);
 
       // C. Fetch pengurus
       const { data: pengData } = await supabase
@@ -117,41 +124,67 @@ export default function AdminDashboard() {
     await supabase.auth.signOut();
   };
 
-  // Moderation Handlers (FR-1.6)
-  const handleApprove = async (id) => {
-    try {
-      const { error } = await supabase
-        .from('aspirasi')
-        .update({ status: 'diterbitkan' })
-        .eq('id', id);
-
-      if (error) throw error;
-      
-      // Update local state
-      setPendingAspirations(prev => prev.filter(item => item.id !== id));
-      setToastType('success');
-      setToastMsg('Aspirasi berhasil diterbitkan ke publik.');
-    } catch (err) {
-      setToastType('error');
-      setToastMsg(`Gagal menerbitkan: ${err.message}`);
-    }
+  // Consolidation Handlers
+  const toggleAspirationSelection = (id) => {
+    setSelectedAspirations((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
   };
 
-  const handleReject = async (id) => {
-    try {
-      // Rejecting sets status to 'draft' or deletes depending on process. Here we delete.
-      const { error } = await supabase
-        .from('aspirasi')
-        .delete()
-        .eq('id', id);
+  const handleSaveRelease = async (e) => {
+    e.preventDefault();
+    if (selectedAspirations.length === 0) {
+      setToastType('error');
+      setToastMsg('Pilih minimal satu aspirasi untuk dikonsolidasikan.');
+      return;
+    }
+    if (!releaseTitle.trim() || !releaseDiscussion.trim()) {
+      setToastType('error');
+      setToastMsg('Harap lengkapi semua bidang form rilis.');
+      return;
+    }
 
-      if (error) throw error;
-      setPendingAspirations(prev => prev.filter(item => item.id !== id));
+    try {
+      const newReleaseId = `rilis-${Math.random().toString(36).substr(2, 9)}`;
+
+      // 1. Insert release record
+      const { error: insertErr } = await supabase
+        .from('rilis_advokasi')
+        .insert({
+          id: newReleaseId,
+          judul_isu: releaseTitle,
+          kategori_isu: releaseCategory,
+          pembahasan_offline: releaseDiscussion,
+          status: 'diterbitkan',
+          tanggal_rilis: new Date().toISOString(),
+        });
+
+      if (insertErr) throw insertErr;
+
+      // 2. Update each selected aspiration with rilis_id reference
+      for (const aspId of selectedAspirations) {
+        const { error: updateErr } = await supabase
+          .from('aspirasi')
+          .update({ rilis_id: newReleaseId })
+          .eq('id', aspId);
+        
+        if (updateErr) throw updateErr;
+      }
+
       setToastType('success');
-      setToastMsg('Aspirasi berhasil ditolak dan dihapus.');
+      setToastMsg('Rilis Hasil Advokasi berhasil diterbitkan.');
+      
+      // Reset form states
+      setReleaseTitle('');
+      setReleaseDiscussion('');
+      setSelectedAspirations([]);
+      setIsConsolidating(false);
+
+      // Refresh list
+      fetchDashboardData();
     } catch (err) {
       setToastType('error');
-      setToastMsg(`Gagal menghapus: ${err.message}`);
+      setToastMsg(`Gagal membuat rilis: ${err.message}`);
     }
   };
 
@@ -413,7 +446,7 @@ export default function AdminDashboard() {
               }`}
             >
               <MessageSquare className="h-4 w-4" />
-              Moderasi Aspirasi
+              Konsolidasi Aspirasi
               {pendingAspirations.length > 0 && (
                 <span className="ml-auto bg-red-650 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                   {pendingAspirations.length}
@@ -577,7 +610,7 @@ export default function AdminDashboard() {
               }`}
             >
               <MessageSquare className="h-3.5 w-3.5" />
-              <span>Moderasi Aspirasi</span>
+              <span>Konsolidasi Aspirasi</span>
               {pendingAspirations.length > 0 && (
                 <span className="ml-auto bg-red-650 text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-full">
                   {pendingAspirations.length}
@@ -670,7 +703,7 @@ export default function AdminDashboard() {
           {/* Stats Summary Row */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
             <div className="p-4 rounded-xl border border-white/5 bg-gray-950/40 backdrop-blur-md space-y-1">
-              <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Aspirasi Tertunda</p>
+              <p className="text-[10px] uppercase font-extrabold text-gray-400 tracking-wider">Aspirasi Belum Rilis</p>
               <div className="flex items-center justify-between">
                 <span className="text-2xl font-bold text-white">{pendingAspirations.length}</span>
                 <MessageSquare className="h-5 w-5 text-purple-500" />
@@ -704,12 +737,25 @@ export default function AdminDashboard() {
           </div>
 
           {/* Render Active Tab panel */}
-          {/* TAB 1: MODERASI ASPIRASI */}
+          {/* TAB 1: KONSOLIDASI ASPIRASI */}
           {activeTab === 'moderation' && (
             <div className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold text-white">Gerbang Moderasi Konten</h3>
-                <p className="text-xs text-gray-400 mt-1">Persetujuan aspirasi berstatus Draft & Review sebelum diterbitkan ke publik.</p>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                  <h3 className="text-xl font-bold text-white">Konsolidasi & Advokasi Aspirasi</h3>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Kumpulkan aspirasi sejenis dari mahasiswa, bahas secara offline, lalu publikasikan Rilis Advokasi resmi.
+                  </p>
+                </div>
+                {selectedAspirations.length > 0 && (
+                  <button
+                    onClick={() => setIsConsolidating(true)}
+                    className="py-2.5 px-5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-purple-900/40 cursor-pointer transition-all animate-in fade-in zoom-in"
+                  >
+                    <Layers className="h-4 w-4" />
+                    <span>Konsolidasikan Isu ({selectedAspirations.length} Terpilih)</span>
+                  </button>
+                )}
               </div>
 
               {dataLoading ? (
@@ -721,62 +767,142 @@ export default function AdminDashboard() {
                 <div className="text-center py-16 border border-dashed border-gray-800 rounded-2xl bg-gray-950/10">
                   <Check className="h-10 w-10 mx-auto text-emerald-600 mb-3 animate-bounce" />
                   <h4 className="font-bold text-white text-sm">Semua Bersih!</h4>
-                  <p className="text-xs text-gray-400 mt-0.5">Tidak ada aspirasi tertunda yang memerlukan moderasi saat ini.</p>
+                  <p className="text-xs text-gray-400 mt-0.5">Tidak ada aspirasi baru yang belum dikonsolidasikan saat ini.</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {pendingAspirations.map((a) => (
-                    <Card key={a.id} className="border-gray-800 bg-gray-900/30 flex flex-col justify-between">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border ${
-                            a.tipe_isu === 'tangible'
-                              ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                              : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
-                          }`}>
-                            {a.tipe_isu}
-                          </span>
-                          <span className="text-[10px] text-gray-500">
-                            {new Date(a.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                          </span>
-                        </div>
-                        <CardTitle className="text-sm text-white mt-2">
-                          Aspirasi dari {a.identitas ? a.identitas.nama : 'Mahasiswa Anonim'}
-                        </CardTitle>
-                        <CardDescription className="text-[10px]">
-                          Prodi: {a.prodi || 'Tidak dicantumkan'}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <p className="text-xs text-gray-300 leading-relaxed bg-gray-950/40 p-3 rounded-lg border border-gray-900">
-                          {a.deskripsi}
-                        </p>
-                        
-                        {a.bukti_url && (
-                          <div className="rounded-lg overflow-hidden border border-gray-900 max-h-40 bg-black">
-                            <img src={a.bukti_url} alt="Bukti Lampiran" className="w-full h-full object-cover" />
+                  {pendingAspirations.map((a) => {
+                    const isSelected = selectedAspirations.includes(a.id);
+                    return (
+                      <Card 
+                        key={a.id} 
+                        onClick={() => toggleAspirationSelection(a.id)}
+                        className={`border-gray-800 bg-gray-900/30 flex flex-col justify-between cursor-pointer transition-all hover:bg-gray-900/50 ${
+                          isSelected ? 'ring-2 ring-purple-600 border-purple-600 bg-purple-950/10' : ''
+                        }`}
+                      >
+                        <CardHeader className="pb-3 flex flex-row items-start justify-between gap-4">
+                          <div className="space-y-2 flex-grow">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded border ${
+                                a.tipe_isu === 'tangible'
+                                  ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                  : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+                              }`}>
+                                {a.tipe_isu}
+                              </span>
+                              <span className="text-[10px] text-gray-500">
+                                {new Date(a.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                              </span>
+                            </div>
+                            <CardTitle className="text-sm text-white">
+                              Aspirasi dari {a.identitas ? a.identitas.nama : 'Mahasiswa Anonim'}
+                            </CardTitle>
+                            <CardDescription className="text-[10px]">
+                              Prodi: {a.prodi || 'Tidak dicantumkan'}
+                            </CardDescription>
                           </div>
-                        )}
-
-                        <div className="flex gap-2 pt-2">
-                          <button
-                            onClick={() => handleApprove(a.id)}
-                            className="flex-grow py-2 rounded bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex justify-center items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <Check className="h-3.5 w-3.5" /> Setujui
-                          </button>
-                          <button
-                            onClick={() => handleReject(a.id)}
-                            className="flex-grow py-2 rounded bg-red-950/40 hover:bg-red-900/20 text-red-400 border border-red-900/30 font-bold text-xs flex justify-center items-center gap-1 cursor-pointer transition-colors"
-                          >
-                            <X className="h-3.5 w-3.5" /> Tolak & Hapus
-                          </button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                          
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleAspirationSelection(a.id);
+                            }}
+                            className="h-4 w-4 rounded border-gray-800 text-purple-600 focus:ring-purple-500 bg-gray-950 cursor-pointer shrink-0 mt-1"
+                          />
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          <p className="text-xs text-gray-300 leading-relaxed bg-gray-950/40 p-3 rounded-lg border border-gray-900">
+                            {a.deskripsi}
+                          </p>
+                          
+                          {a.bukti_url && (
+                            <div className="rounded-lg overflow-hidden border border-gray-900 max-h-40 bg-black">
+                              <img src={a.bukti_url} alt="Bukti Lampiran" className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
+
+              {/* ── dialog konsolidasi / rilis advokasi ────────────────── */}
+              <Dialog open={isConsolidating} onOpenChange={setIsConsolidating}>
+                <DialogHeader>
+                  <DialogTitle className="text-white text-base md:text-lg">
+                    Terbitkan Rilis Hasil Advokasi BEM
+                  </DialogTitle>
+                  <DialogDescription className="text-xs text-purple-400 font-bold mt-1">
+                    Merangkum {selectedAspirations.length} aspirasi mahasiswa terpilih menjadi respon resmi.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <form onSubmit={handleSaveRelease} className="space-y-4 mt-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                      Kategori Isu
+                    </label>
+                    <select
+                      value={releaseCategory}
+                      onChange={(e) => setReleaseCategory(e.target.value)}
+                      className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    >
+                      <option value="Fasilitas">Fasilitas Kampus</option>
+                      <option value="Akademik & Birokrasi">Akademik & Birokrasi</option>
+                      <option value="Layanan & Ormawa">Layanan & Ormawa</option>
+                      <option value="Lainnya">Lainnya</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                      Judul Isu Rilis Resmi
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={releaseTitle}
+                      onChange={(e) => setReleaseTitle(e.target.value)}
+                      placeholder="Contoh: Penyelesaian Masalah Kerusakan AC Ruang Kelas"
+                      className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1">
+                      Konten Pembahasan Offline / Hasil Advokasi
+                    </label>
+                    <textarea
+                      required
+                      rows={6}
+                      value={releaseDiscussion}
+                      onChange={(e) => setReleaseDiscussion(e.target.value)}
+                      placeholder="Tuliskan hasil rapat BEM, SOP baru, koordinasi Rektorat, atau jadwal penanganan detail..."
+                      className="block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-xs text-white focus:border-purple-500 focus:outline-none resize-none"
+                    />
+                  </div>
+
+                  <div className="flex gap-2 justify-end pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsConsolidating(false)}
+                      className="px-4 py-2 rounded-lg bg-gray-900 text-gray-400 hover:text-white border border-gray-850 hover:bg-gray-800 text-xs font-bold cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold cursor-pointer"
+                    >
+                      Terbitkan Rilis
+                    </button>
+                  </div>
+                </form>
+              </Dialog>
             </div>
           )}
 

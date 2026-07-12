@@ -27,6 +27,16 @@ CREATE TABLE public.profiles (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+CREATE TABLE public.rilis_advokasi (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    judul_isu TEXT NOT NULL,
+    kategori_isu TEXT NOT NULL,
+    pembahasan_offline TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'draft',
+    tanggal_rilis TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 CREATE TABLE public.aspirasi (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tipe_isu tipe_isu NOT NULL,
@@ -34,7 +44,7 @@ CREATE TABLE public.aspirasi (
     prodi TEXT NOT NULL,
     deskripsi TEXT NOT NULL,
     bukti_url TEXT, -- URL file di storage bucket 'bukti-aspirasi'
-    status status_aspirasi NOT NULL DEFAULT 'draft',
+    rilis_id UUID REFERENCES public.rilis_advokasi(id) ON DELETE SET NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -68,6 +78,7 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.aspirasi ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.peminjaman_ruangan ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.pengurus ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.rilis_advokasi ENABLE ROW LEVEL SECURITY;
 
 -- 4. RLS Policies: Profiles
 CREATE POLICY "Public profiles are viewable by authenticated users"
@@ -131,18 +142,31 @@ CREATE POLICY "Admin can manage peminjaman ruangan"
         )
     );
 
--- 8. RLS Policies: Aspirasi
+-- 8. RLS Policies: Aspirasi (Internal-Only Admin Access)
 CREATE POLICY "Anyone can submit aspirations"
     ON public.aspirasi FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Public can view published aspirations"
-    ON public.aspirasi FOR SELECT USING (status = 'diterbitkan');
 
 CREATE POLICY "Admin can view all aspirations"
     ON public.aspirasi FOR SELECT TO authenticated USING (true);
 
 CREATE POLICY "Admin can update aspirations"
     ON public.aspirasi FOR UPDATE TO authenticated
+    USING (
+        EXISTS (
+            SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid()
+        )
+    );
+
+-- 9. RLS Policies: Rilis Advokasi (Publicly readable when published)
+CREATE POLICY "Anyone can read published releases"
+    ON public.rilis_advokasi FOR SELECT
+    USING (status = 'diterbitkan');
+
+CREATE POLICY "Admin can view all releases"
+    ON public.rilis_advokasi FOR SELECT TO authenticated USING (true);
+
+CREATE POLICY "Admin can manage releases"
+    ON public.rilis_advokasi FOR ALL TO authenticated
     USING (
         EXISTS (
             SELECT 1 FROM public.profiles WHERE profiles.id = auth.uid()

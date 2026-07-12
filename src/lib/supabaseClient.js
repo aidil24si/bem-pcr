@@ -16,7 +16,7 @@ class MockSupabaseClient {
 
   initMockData() {
     // ── Seed version guard: bump this whenever you change initial data ──
-    const SEED_VERSION = 'v4';
+    const SEED_VERSION = 'v5';
     if (localStorage.getItem('mock_seed_version') !== SEED_VERSION) {
       const keys = [
         'mock_kementerian',
@@ -28,7 +28,8 @@ class MockSupabaseClient {
         'mock_proker',
         'mock_agenda',
         'mock_galeri',
-        'mock_pengumuman'
+        'mock_pengumuman',
+        'mock_rilis_advokasi'
       ];
       keys.forEach((k) => localStorage.removeItem(k));
       localStorage.setItem('mock_seed_version', SEED_VERSION);
@@ -106,7 +107,7 @@ class MockSupabaseClient {
           prodi: 'Teknik Informatika',
           deskripsi: 'AC di Ruang Kelas H.3.1 Gedung Baru bocor dan kurang dingin selama dua minggu terakhir.',
           bukti_url: 'https://images.unsplash.com/photo-1585338107529-13afc5f02586?auto=format&fit=crop&q=80&w=300',
-          status: 'diterbitkan',
+          rilis_id: 'rilis-1',
           created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
@@ -116,7 +117,7 @@ class MockSupabaseClient {
           prodi: 'Sistem Informasi',
           deskripsi: 'Pelayanan birokrasi kemahasiswaan fakultas sangat lambat dalam memproses surat rekomendasi beasiswa.',
           bukti_url: null,
-          status: 'diterbitkan',
+          rilis_id: 'rilis-2',
           created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
@@ -126,17 +127,17 @@ class MockSupabaseClient {
           prodi: 'Teknik Mesin',
           deskripsi: 'Fasilitas alat las di bengkel teknik mesin banyak yang rusak dan berkarat.',
           bukti_url: null,
-          status: 'review',
+          rilis_id: null,
           created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
         },
         {
           id: 'a4',
           tipe_isu: 'intangible',
           identitas: null, // Anonim
-          prodi: 'Psikologi',
+          prodi: 'Anonim',
           deskripsi: 'Kurangnya bimbingan konseling dan kesehatan mental gratis di tingkat universitas.',
           bukti_url: null,
-          status: 'draft',
+          rilis_id: null,
           created_at: new Date().toISOString(),
         },
       ];
@@ -303,6 +304,29 @@ class MockSupabaseClient {
         }
       ];
       localStorage.setItem('mock_pengumuman', JSON.stringify(initialPengumuman));
+    }
+
+    // 12. Rilis Advokasi
+    if (!localStorage.getItem('mock_rilis_advokasi')) {
+      const initialRilis = [
+        {
+          id: 'rilis-1',
+          judul_isu: 'Perbaikan Pendingin Ruangan (AC) di Gedung H.3.1',
+          kategori_isu: 'Fasilitas',
+          pembahasan_offline: 'BEM telah berkoordinasi dengan Sarpras Rektorat untuk menindaklanjuti keluhan mahasiswa mengenai AC kelas Gedung Baru yang bocor. Rektorat telah menjadwalkan perbaikan menyeluruh pada hari Sabtu ini.',
+          status: 'diterbitkan',
+          tanggal_rilis: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        {
+          id: 'rilis-2',
+          judul_isu: 'Standardisasi Layanan Rekomendasi Beasiswa Fakultas',
+          kategori_isu: 'Akademik & Birokrasi',
+          pembahasan_offline: 'Menindaklanjuti keluhan lambatnya birokrasi fakultas, BEM menyepakati SOP baru bersama Dekan. Pengurusan surat rekomendasi beasiswa kini ditargetkan selesai maksimal dalam 2 hari kerja.',
+          status: 'diterbitkan',
+          tanggal_rilis: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+        }
+      ];
+      localStorage.setItem('mock_rilis_advokasi', JSON.stringify(initialRilis));
     }
   }
 
