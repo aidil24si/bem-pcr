@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { supabase } from '../../lib/supabaseClient';
-import { sanitizeAndCompressImage, validateImageMagicBytes } from '../../utils/imageSanitizer';
+import { useMockDatabase } from '../../context/MockDatabaseContext';
+import { sanitizeImageEXIF } from '../../utils/exifSanitizer';
+import { validateEmail } from '../../utils/emailValidator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
-import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, User, X, Layers } from 'lucide-react';
+import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, X, Layers } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
 
 export default function AspirasiPublic() {
   useDocumentTitle('Kotak Aspirasi');
 
+  const { aspirasi: allAspirations, rilisAdvokasi, tambahAspirasi } = useMockDatabase();
+  
+  // Hanya rilis yang sudah diterbitkan
+  const releasesList = rilisAdvokasi.filter(r => r.status === 'diterbitkan');
+
   // Form State
   const [tipeIsu, setTipeIsu] = useState('tangible');
   const [isAnonim, setIsAnonim] = useState(true);
   const [nama, setNama] = useState('');
   const [nim, setNim] = useState('');
-  const [prodi, setProdi] = useState('');
+  const [email, setEmail] = useState('');
   const [deskripsi, setDeskripsi] = useState('');
   const [buktiFile, setBuktiFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
@@ -23,49 +29,14 @@ export default function AspirasiPublic() {
   const [loading, setLoading] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
-  // Handle Object URL cleanup to avoid memory leaks
+  // Handle Object URL cleanup
   useEffect(() => {
     return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
-
-  // Feed State
-  const [releasesList, setReleasesList] = useState([]);
-  const [allAspirations, setAllAspirations] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [feedLoading, setFeedLoading] = useState(true);
-
-  // Fetch published releases & associated aspirations
-  const fetchPublicData = async () => {
-    setFeedLoading(true);
-    try {
-      // 1. Fetch published releases
-      const { data: relData, error: relError } = await supabase
-        .from('rilis_advokasi')
-        .select('*')
-        .eq('status', 'diterbitkan')
-        .order('tanggal_rilis', { ascending: false });
-
-      if (relError) throw relError;
-      setReleasesList(relData || []);
-
-      // 2. Fetch all aspirations that are linked to a release
-      const { data: aspData, error: aspError } = await supabase
-        .from('aspirasi')
-        .select('*');
-
-      if (aspError) throw aspError;
-      setAllAspirations(aspData || []);
-    } catch (err) {
-      console.error('Error fetching public advokasi data:', err);
-    } finally {
-      setFeedLoading(false);
-    }
-  };
 
   // Load drafts on mount
   useEffect(() => {
@@ -73,102 +44,48 @@ export default function AspirasiPublic() {
     const savedAnon = sessionStorage.getItem('asp_anon');
     const savedNama = sessionStorage.getItem('asp_nama');
     const savedNim = sessionStorage.getItem('asp_nim');
-    const savedProdi = sessionStorage.getItem('asp_prodi');
+    const savedEmail = sessionStorage.getItem('asp_email');
     const savedDesc = sessionStorage.getItem('asp_desc');
 
     if (savedTipe) setTipeIsu(savedTipe);
     if (savedAnon) setIsAnonim(savedAnon === 'true');
     if (savedNama) setNama(savedNama);
     if (savedNim) setNim(savedNim);
-    if (savedProdi) setProdi(savedProdi);
+    if (savedEmail) setEmail(savedEmail);
     if (savedDesc) setDeskripsi(savedDesc);
-
-    fetchPublicData();
   }, []);
 
-  // Save drafts to sessionStorage
-  useEffect(() => {
-    sessionStorage.setItem('asp_tipe', tipeIsu);
-  }, [tipeIsu]);
+  // Save drafts
+  useEffect(() => sessionStorage.setItem('asp_tipe', tipeIsu), [tipeIsu]);
+  useEffect(() => sessionStorage.setItem('asp_anon', String(isAnonim)), [isAnonim]);
+  useEffect(() => sessionStorage.setItem('asp_nama', nama), [nama]);
+  useEffect(() => sessionStorage.setItem('asp_nim', nim), [nim]);
+  useEffect(() => sessionStorage.setItem('asp_email', email), [email]);
+  useEffect(() => sessionStorage.setItem('asp_desc', deskripsi), [deskripsi]);
 
-  useEffect(() => {
-    sessionStorage.setItem('asp_anon', String(isAnonim));
-  }, [isAnonim]);
-
-  useEffect(() => {
-    sessionStorage.setItem('asp_nama', nama);
-  }, [nama]);
-
-  useEffect(() => {
-    sessionStorage.setItem('asp_nim', nim);
-  }, [nim]);
-
-  useEffect(() => {
-    sessionStorage.setItem('asp_prodi', prodi);
-  }, [prodi]);
-
-  useEffect(() => {
-    sessionStorage.setItem('asp_desc', deskripsi);
-  }, [deskripsi]);
-
-  // Filter and Join search logic: Rilis Advokasi (FR-1.5)
+  // Filter Search
   const filteredReleases = useMemo(() => {
     if (!searchQuery.trim()) return releasesList;
 
     const query = searchQuery.toLowerCase();
-    const matchedReleaseIds = new Set();
-
-    // 1. Direct search in releases
-    releasesList.forEach((rel) => {
-      const matchJudul = rel.judul_isu && rel.judul_isu.toLowerCase().includes(query);
-      const matchPembahasan = rel.pembahasan_offline && rel.pembahasan_offline.toLowerCase().includes(query);
-      const matchKategori = rel.kategori_isu && rel.kategori_isu.toLowerCase().includes(query);
-      
-      if (matchJudul || matchPembahasan || matchKategori) {
-        matchedReleaseIds.add(rel.id);
-      }
-    });
-
-    // 2. Indirect search in consolidated student aspirations
-    allAspirations.forEach((asp) => {
-      if (asp.rilis_id) {
-        const matchDesc = asp.deskripsi && asp.deskripsi.toLowerCase().includes(query);
-        const matchProdi = asp.prodi && asp.prodi.toLowerCase().includes(query);
-        
-        if (matchDesc || matchProdi) {
-          matchedReleaseIds.add(asp.rilis_id);
-        }
-      }
-    });
-
-    return releasesList.filter((rel) => matchedReleaseIds.has(rel.id));
-  }, [searchQuery, releasesList, allAspirations]);
+    
+    return releasesList.filter((rel) => 
+      (rel.judul_isu && rel.judul_isu.toLowerCase().includes(query)) ||
+      (rel.pembahasan_offline && rel.pembahasan_offline.toLowerCase().includes(query)) ||
+      (rel.kategori_isu && rel.kategori_isu.toLowerCase().includes(query))
+    );
+  }, [searchQuery, releasesList]);
 
   const handleFileChange = async (e) => {
     setErrorMessage('');
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
-      // Limit file size to 2MB (2 * 1024 * 1024 bytes)
-      const MAX_SIZE = 2 * 1024 * 1024;
-      if (file.size > MAX_SIZE) {
-        setErrorMessage('Gagal memilih file: Ukuran file gambar maksimal adalah 2MB.');
-        e.target.value = ''; // Reset file input element
-        setBuktiFile(null);
-        setPreviewUrl('');
+      if (file.size > 2 * 1024 * 1024) {
+        setErrorMessage('Ukuran file maksimal adalah 2MB.');
+        e.target.value = '';
+        removeFile();
         return;
       }
-
-      // Validate Magic Bytes to confirm it is a valid image (JPEG, PNG, GIF, WEBP)
-      const isValidImage = await validateImageMagicBytes(file);
-      if (!isValidImage) {
-        setErrorMessage('Gagal memilih file: File bukan gambar yang valid. Harap unggah berkas dengan format JPEG, PNG, GIF, atau WEBP.');
-        e.target.value = ''; // Reset file input element
-        setBuktiFile(null);
-        setPreviewUrl('');
-        return;
-      }
-
       setBuktiFile(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
@@ -186,70 +103,45 @@ export default function AspirasiPublic() {
     setSubmitSuccess(false);
 
     try {
-      if (!isAnonim && !prodi.trim()) throw new Error('Program studi harus diisi.');
+      if (!isAnonim) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!email.trim() || !emailRegex.test(email)) throw new Error('Email tidak valid (Gunakan format: nama@domain.com)');
+        if (!nama.trim() || !nim.trim()) throw new Error('Nama dan NIM wajib diisi jika tidak anonim.');
+      }
       if (!deskripsi.trim()) throw new Error('Deskripsi aspirasi harus diisi.');
 
       let finalBuktiUrl = null;
 
-      // Handle Image Upload if file exists
-      if (buktiFile) {
-        // 1. Sanitize & Compress image (HTML5 Canvas redraw to strip EXIF + JPEG conversion)
-        const sanitizedFile = await sanitizeAndCompressImage(buktiFile, 0.7);
-
-        // 2. Upload file to Supabase private storage bucket 'bukti-aspirasi'
-        const { error: uploadError } = await supabase.storage
-          .from('bukti-aspirasi')
-          .upload(sanitizedFile.name, sanitizedFile, {
-            cacheControl: '3600',
-            upsert: false,
-          });
-
-        if (uploadError) throw new Error(`Gagal mengunggah bukti: ${uploadError.message}`);
-
-        // Get public URL or path reference
-        const { data: urlData } = supabase.storage
-          .from('bukti-aspirasi')
-          .getPublicUrl(sanitizedFile.name);
-        
-        finalBuktiUrl = urlData?.publicUrl || sanitizedFile.name;
+      // EXIF Sanitization
+      if (buktiFile && tipeIsu === 'tangible') {
+        const { previewUrl: sanitizedUrl } = await sanitizeImageEXIF(buktiFile);
+        // In local mock, we just use the local object url as the "uploaded" URL
+        finalBuktiUrl = sanitizedUrl;
       }
 
-      // Build identity object
-      const identitas = isAnonim ? null : { nama, nim };
+      const identitas = isAnonim ? null : { nama, nim, email };
 
-      // 3. Insert into Supabase table 'aspirasi' (status columns deprecated, rilis_id defaults to null)
-      const { error: insertError } = await supabase.from('aspirasi').insert({
+      // Save to Context API Mock DB
+      tambahAspirasi({
         tipe_isu: tipeIsu,
         identitas: identitas,
-        prodi: isAnonim ? 'Anonim' : prodi,
         deskripsi: deskripsi,
         bukti_url: finalBuktiUrl,
-        rilis_id: null,
       });
-
-      if (insertError) throw insertError;
 
       // Reset Form
       setNama('');
       setNim('');
-      setProdi('');
+      setEmail('');
       setDeskripsi('');
-      setBuktiFile(null);
-      setPreviewUrl('');
+      removeFile();
       setIsAnonim(true);
       if (e.target) e.target.reset();
 
-      // Clear sessionStorage drafts
-      sessionStorage.removeItem('asp_tipe');
-      sessionStorage.removeItem('asp_anon');
-      sessionStorage.removeItem('asp_nama');
-      sessionStorage.removeItem('asp_nim');
-      sessionStorage.removeItem('asp_prodi');
-      sessionStorage.removeItem('asp_desc');
+      // Clear drafts
+      sessionStorage.clear();
 
       setSubmitSuccess(true);
-      // Refetch releases & aspirations
-      fetchPublicData();
     } catch (err) {
       setErrorMessage(err.message || 'Terjadi kesalahan saat mengirim aspirasi.');
     } finally {
@@ -259,12 +151,11 @@ export default function AspirasiPublic() {
 
   return (
     <div className="space-y-12">
-      {/* Page Header (Unified) */}
       <PageHeader
         tag="Kotak Aspirasi"
         icon={MessageSquare}
         title="Kotak Aspirasi Mahasiswa"
-        description="Suarakan keluhan, saran, dan ide konstruktif Anda demi kemajuan kampus. Kami menjamin privasi Anda 100% aman (termasuk pembersihan otomatis metadata gambar bukti)."
+        description="Suarakan keluhan, saran, dan ide konstruktif Anda. Kami menjamin privasi Anda (termasuk pembersihan otomatis metadata EXIF foto)."
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -276,9 +167,7 @@ export default function AspirasiPublic() {
                 <MessageSquare className="h-5 w-5 text-purple-500" />
                 Formulir Aspirasi
               </CardTitle>
-              <CardDescription>
-                Isi form di bawah ini dengan lengkap dan jujur.
-              </CardDescription>
+              <CardDescription>Isi form di bawah ini dengan jelas.</CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -306,7 +195,7 @@ export default function AspirasiPublic() {
                           : 'border-gray-800 bg-gray-950 text-gray-400 hover:text-gray-200'
                       }`}
                     >
-                      Non-Fasilitas (Intangible)
+                      Birokrasi (Intangible)
                     </button>
                   </div>
                 </div>
@@ -324,7 +213,7 @@ export default function AspirasiPublic() {
                     type="checkbox"
                     checked={isAnonim}
                     onChange={(e) => setIsAnonim(e.target.checked)}
-                    className="h-4 w-4 rounded border-gray-800 text-purple-600 focus:ring-purple-500 focus:ring-offset-gray-900 bg-gray-950 cursor-pointer"
+                    className="h-4 w-4 rounded border-gray-800 text-purple-600 focus:ring-purple-500 bg-gray-950 cursor-pointer"
                   />
                 </div>
 
@@ -333,14 +222,13 @@ export default function AspirasiPublic() {
                   <div className="space-y-3 animate-in fade-in slide-in-from-top-3 duration-200">
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-medium text-gray-400">Nama</label>
+                        <label className="text-xs font-medium text-gray-400">Nama Lengkap</label>
                         <input
                           type="text"
                           required
                           value={nama}
                           onChange={(e) => setNama(e.target.value)}
-                          placeholder="Nama Lengkap"
-                          className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                          className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500"
                         />
                       </div>
                       <div>
@@ -350,23 +238,23 @@ export default function AspirasiPublic() {
                           required
                           value={nim}
                           onChange={(e) => setNim(e.target.value)}
-                          placeholder="NIM"
-                          className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                          className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500"
                         />
                       </div>
                     </div>
-
-                    {/* Program Studi */}
                     <div>
-                      <label className="text-xs font-medium text-gray-400">Program Studi</label>
+                      <label className="text-xs font-medium text-gray-400">Email Kampus / Pribadi</label>
                       <input
-                        type="text"
+                        type="email"
                         required
-                        value={prodi}
-                        onChange={(e) => setProdi(e.target.value)}
-                        placeholder="Contoh: Teknik Informatika"
-                        className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="nama@mahasiswa.ac.id"
+                        className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500"
                       />
+                      <p className="text-[10px] text-gray-500 mt-1.5 italic">
+                        Email digunakan BEM untuk verifikasi & kontak resmi eksternal jika diperlukan.
+                      </p>
                     </div>
                   </div>
                 )}
@@ -379,8 +267,8 @@ export default function AspirasiPublic() {
                     rows={4}
                     value={deskripsi}
                     onChange={(e) => setDeskripsi(e.target.value)}
-                    placeholder="Tulis detail keluhan/saran Anda secara jelas..."
-                    className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+                    placeholder="Tulis detail keluhan/saran Anda..."
+                    className="mt-1 block w-full rounded-lg border border-gray-800 bg-gray-950 px-3 py-2 text-sm text-white placeholder-gray-500 focus:border-purple-500"
                   />
                 </div>
 
@@ -388,35 +276,31 @@ export default function AspirasiPublic() {
                 {tipeIsu === 'tangible' && (
                   <div className="space-y-3">
                     <label className="text-sm font-medium text-gray-300 block">
-                      Unggah Bukti Foto (Optional)
+                      Unggah Bukti Foto (Wajib untuk Fasilitas)
                     </label>
                     <div className="relative flex items-center justify-center rounded-lg border border-dashed border-gray-800 bg-gray-950 hover:bg-gray-900/50 transition-colors p-4 cursor-pointer">
                       <input
                         type="file"
                         accept="image/*"
+                        required
                         onChange={handleFileChange}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                       />
                       <div className="text-center space-y-1">
                         <Upload className="mx-auto h-6 w-6 text-gray-400" />
                         <p className="text-xs text-gray-400 font-medium">
-                          {buktiFile ? buktiFile.name : 'Pilih file gambar bukti'}
+                          {buktiFile ? buktiFile.name : 'Pilih file gambar bukti (Maks 2MB)'}
                         </p>
-                        <p className="text-[10px] text-gray-500">EXIF metadata akan dihapus otomatis</p>
+                        <p className="text-[10px] text-purple-400 font-bold">Metadata lokasi (EXIF) akan dihapus secara otomatis!</p>
                       </div>
                     </div>
-                    {/* Visual Image Preview */}
                     {previewUrl && (
                       <div className="relative rounded-lg overflow-hidden border border-gray-800 bg-gray-950 p-1.5 animate-in fade-in zoom-in-95 duration-200">
-                        <img
-                          src={previewUrl}
-                          alt="Pratinjau Bukti"
-                          className="h-44 w-full object-cover rounded-md"
-                        />
+                        <img src={previewUrl} alt="Pratinjau Bukti" className="h-44 w-full object-cover rounded-md" />
                         <button
                           type="button"
                           onClick={removeFile}
-                          className="absolute top-3.5 right-3.5 p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white cursor-pointer transition-colors shadow-md"
+                          className="absolute top-3.5 right-3.5 p-1.5 rounded-full bg-red-600 hover:bg-red-700 text-white cursor-pointer shadow-md"
                         >
                           <X className="h-3.5 w-3.5" />
                         </button>
@@ -425,14 +309,13 @@ export default function AspirasiPublic() {
                   </div>
                 )}
 
-                {/* Alert Messages */}
+                {/* Alerts */}
                 {submitSuccess && (
                   <div className="flex items-center gap-2 p-3 bg-emerald-950/50 border border-emerald-800 text-emerald-400 rounded-lg text-sm">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    <span>Aspirasi berhasil dikirim! Sedang menunggu proses moderasi admin.</span>
+                    <span>Aspirasi tersimpan! Menunggu konsolidasi admin.</span>
                   </div>
                 )}
-
                 {errorMessage && (
                   <div className="flex items-center gap-2 p-3 bg-red-950/50 border border-red-800 text-red-400 rounded-lg text-sm">
                     <ShieldAlert className="h-4 w-4 shrink-0" />
@@ -440,20 +323,12 @@ export default function AspirasiPublic() {
                   </div>
                 )}
 
-                {/* Submit Button */}
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-lg hover:shadow-purple-500/25 transition-all text-sm disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2 cursor-pointer"
+                  className="w-full py-2.5 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-lg hover:shadow-purple-500/25 transition-all text-sm disabled:opacity-50 flex justify-center items-center gap-2"
                 >
-                  {loading ? (
-                    <>
-                      <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Memproses...
-                    </>
-                  ) : (
-                    'Kirim Aspirasi'
-                  )}
+                  {loading ? 'Memproses Sanitasi Gambar...' : 'Kirim Aspirasi Ke BEM'}
                 </button>
               </form>
             </CardContent>
@@ -469,25 +344,19 @@ export default function AspirasiPublic() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari respon rilis advokasi resmi BEM..."
+              placeholder="Cari respon rilis advokasi resmi dari keluhan Anda..."
               className="bg-transparent border-none text-sm text-white placeholder-gray-500 focus:outline-none w-full"
             />
           </div>
 
           {/* Feed List */}
-          {feedLoading ? (
-            <div className="text-center py-12">
-              <div className="h-8 w-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-gray-400 text-sm">Memuat data advokasi...</p>
-            </div>
-          ) : filteredReleases.length === 0 ? (
+          {filteredReleases.length === 0 ? (
             <div className="text-center py-16 border border-gray-800 rounded-xl bg-gray-900/20">
               <Layers className="h-10 w-10 text-gray-600 mx-auto mb-3" />
               <p className="text-gray-400 font-medium">Belum ada Rilis Advokasi resmi</p>
-              <p className="text-gray-500 text-sm mt-1">Gunakan kotak pencarian untuk mencocokkan keluhan lama Anda.</p>
             </div>
           ) : (
-            <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1">
               {filteredReleases.map((release) => {
                 const linkedAsps = allAspirations.filter(asp => asp.rilis_id === release.id);
                 return (
@@ -501,9 +370,7 @@ export default function AspirasiPublic() {
                           </span>
                           <span className="text-xs text-gray-500">
                             {new Date(release.tanggal_rilis).toLocaleDateString('id-ID', {
-                              day: 'numeric',
-                              month: 'long',
-                              year: 'numeric',
+                              day: 'numeric', month: 'long', year: 'numeric',
                             })}
                           </span>
                         </div>
@@ -525,7 +392,7 @@ export default function AspirasiPublic() {
                         </p>
                       </div>
 
-                      {/* Associated student aspirations list */}
+                      {/* Aspirasi Terkonsolidasi */}
                       {linkedAsps.length > 0 && (
                         <div className="pt-3 border-t border-gray-800/60 space-y-2">
                           <p className="text-[9px] font-bold text-gray-500 uppercase tracking-wider">
@@ -536,11 +403,12 @@ export default function AspirasiPublic() {
                               <div key={asp.id} className="text-xs bg-gray-950/30 p-2.5 rounded border border-gray-900/60">
                                 <div className="flex justify-between items-center mb-1 text-[9px] font-semibold text-gray-500">
                                   <span>{asp.identitas ? asp.identitas.nama : 'Anonim'}</span>
-                                  <span>Prodi: {asp.prodi}</span>
                                 </div>
                                 <p className="text-gray-300 leading-normal italic">"{asp.deskripsi}"</p>
                                 {asp.bukti_url && (
-                                  <span className="text-[9px] text-purple-400 mt-1 inline-block">📎 Memiliki Lampiran Foto</span>
+                                  <a href={asp.bukti_url} target="_blank" rel="noreferrer" className="text-[9px] text-purple-400 mt-1 inline-block hover:underline">
+                                    📎 Lihat Lampiran Sanitasi
+                                  </a>
                                 )}
                               </div>
                             ))}

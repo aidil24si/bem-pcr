@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { useMockDatabase } from '../../context/MockDatabaseContext';
 import {
   MessageSquare,
   Calendar,
@@ -142,39 +142,25 @@ function LeaderCard({ pengurus }) {
 // Main Landing Page Component
 // ============================================================
 export default function LandingPage({ onNavigate }) {
+  const { kementerian, pengurus, aspirasi, rilisAdvokasi } = useMockDatabase();
   const [pimpinan, setPimpinan] = useState([]);
-  const [stats, setStats] = useState({ kementerian: 0, pengurus: 0, aspirasi: 0, ruangan: 0 });
+  const [stats, setStats] = useState({ kementerian: 0, pengurus: 0, aspirasi: 0, rilis: 0 });
 
   useEffect(() => {
-    const fetchData = async () => {
-      // Fetch pimpinan (Presma & Wapresma)
-      const { data: pengurusData } = await supabase
-        .from('pengurus')
-        .select('*')
-        .eq('periode_tahun', BEM_CONFIG.periode);
+    // Ambil pimpinan berdasarkan hierarki kementerian order 0
+    const presmaKem = kementerian.find((k) => k.hierarki_order === 0);
+    const pimpinanList = presmaKem
+      ? pengurus.filter((p) => p.kementerian_id === presmaKem.id && p.periode_tahun === BEM_CONFIG.periode)
+      : [];
 
-      const kemData = await supabase.from('kementerian').select('*');
-      const aspData = await supabase.from('aspirasi').select('*').eq('status', 'diterbitkan');
-      const ruangData = await supabase.from('peminjaman_ruangan').select('*');
-
-      // Ambil pimpinan berdasarkan hierarki kementerian order 0
-      const kemList = kemData.data || [];
-      const presmaKem = kemList.find((k) => k.hierarki_order === 0);
-      const pimpinanList = presmaKem
-        ? (pengurusData || []).filter((p) => p.kementerian_id === presmaKem.id)
-        : [];
-
-      setPimpinan(pimpinanList.slice(0, 2)); // Presma & Wapresma
-      setStats({
-        kementerian: kemList.length,
-        pengurus: (pengurusData || []).filter((p) => p.periode_tahun === BEM_CONFIG.periode).length,
-        aspirasi: (aspData.data || []).length,
-        ruangan: (ruangData.data || []).length,
-      });
-    };
-
-    fetchData();
-  }, []);
+    setPimpinan(pimpinanList.slice(0, 2)); // Presma & Wapresma
+    setStats({
+      kementerian: kementerian.length,
+      pengurus: pengurus.filter((p) => p.periode_tahun === BEM_CONFIG.periode).length,
+      aspirasi: aspirasi.length,
+      rilis: rilisAdvokasi.filter((r) => r.status === 'diterbitkan').length,
+    });
+  }, [kementerian, pengurus, aspirasi, rilisAdvokasi]);
 
   const scrollToContent = () => {
     document.getElementById('fitur-utama')?.scrollIntoView({ behavior: 'smooth' });
@@ -251,8 +237,8 @@ export default function LandingPage({ onNavigate }) {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <StatCard value={stats.kementerian} label="Kementerian Aktif" icon={TrendingUp} color="purple" />
             <StatCard value={stats.pengurus}    label="Pengurus Kabinet"  icon={Users}       color="indigo" />
-            <StatCard value={stats.aspirasi}    label="Aspirasi Diterbitkan" icon={Megaphone} color="emerald" />
-            <StatCard value={stats.ruangan}     label="Jadwal Terdaftar"  icon={Calendar}   color="amber" />
+            <StatCard value={stats.aspirasi}    label="Aspirasi Masuk" icon={Megaphone} color="emerald" />
+            <StatCard value={stats.rilis}       label="Rilis Advokasi"  icon={BookOpen}   color="amber" />
           </div>
         </div>
       </section>
@@ -273,7 +259,7 @@ export default function LandingPage({ onNavigate }) {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
             <FeatureCard
               icon={MessageSquare}
               title="Kotak Aspirasi"
@@ -283,20 +269,12 @@ export default function LandingPage({ onNavigate }) {
               accent="purple"
             />
             <FeatureCard
-              icon={Calendar}
-              title="Jadwal Ruangan"
-              description="Cek jadwal peminjaman ruangan ormawa secara real-time. Hindari bentrokan jadwal antar organisasi dengan mudah."
-              buttonLabel="Lihat Jadwal"
-              onClick={() => onNavigate('ruangan')}
-              accent="indigo"
-            />
-            <FeatureCard
               icon={Users}
               title="Struktur Kabinet"
               description="Kenali pengurus BEM, latar belakang, prestasi, dan riwayat organisasi mereka. Tersedia untuk setiap periode kepengurusan."
               buttonLabel="Lihat Kabinet"
               onClick={() => onNavigate('kabinet')}
-              accent="emerald"
+              accent="indigo"
             />
           </div>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
 import { BookOpen, Target, Award, ShieldAlert, History, Landmark, Sparkles, Compass } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
@@ -98,49 +98,12 @@ export default function ProfilBEM() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchCabinets = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('kabinet_periode')
-          .select('*')
-          .order('periode', { ascending: false });
-
-        if (error) throw error;
-
-        if (data && data.length > 0) {
-          const formatted = data.map((d) => ({
-            periode: d.periode,
-            namaKabinet: d.nama_kabinet,
-            tagline: d.tagline,
-            deskripsiKabinet: d.deskripsi_kabinet,
-            visi: d.visi,
-            misi: Array.isArray(d.misi) 
-              ? d.misi 
-              : typeof d.misi === 'string' 
-                ? JSON.parse(d.misi) 
-                : [],
-            tujuan: Array.isArray(d.tujuan) 
-              ? d.tujuan 
-              : typeof d.tujuan === 'string' 
-                ? JSON.parse(d.tujuan) 
-                : [],
-            logoFilosofi: Array.isArray(d.logo_filosofi) 
-              ? d.logo_filosofi 
-              : typeof d.logo_filosofi === 'string' 
-                ? JSON.parse(d.logo_filosofi) 
-                : [],
-          }));
-          setCabinetPeriods(formatted);
-          setSelectedPeriod(formatted[0].periode);
-        }
-      } catch (err) {
-        console.log('Using local cabinet periods fallback data.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCabinets();
+    setLoading(true);
+    // Simulate loading for UX
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
   }, []);
 
   // Find active cabinet details
