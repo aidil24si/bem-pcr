@@ -34,7 +34,7 @@ export default function MainLayout({ children }) {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-gray-100 flex flex-col justify-between">
+    <div className="min-h-screen bg-slate-50 text-slate-600 flex flex-col justify-between">
 
       {/* ── DYNAMIC ANNOUNCEMENT BANNER ──────────────── */}
       {activeAnn && (

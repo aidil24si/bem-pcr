@@ -33,7 +33,7 @@ export default function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/[0.05] bg-[#030712]/85 backdrop-blur-md">
+    <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white/95 backdrop-blur-md">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
 
         {/* Logo Brand */}
@@ -41,8 +41,8 @@ export default function Header() {
           onClick={() => navigateTo('/')}
           className="flex items-center gap-2 cursor-pointer group shrink-0"
         >
-          <GraduationCap className="h-6 w-6 text-purple-500 group-hover:scale-110 transition-transform" />
-          <span className="font-extrabold text-base bg-gradient-to-r from-white via-gray-200 to-purple-400 bg-clip-text text-transparent tracking-tight">
+          <GraduationCap className="h-6 w-6 text-[#004B5F] group-hover:scale-110 transition-transform" />
+          <span className="font-extrabold text-base text-[#004B5F] tracking-tight">
             BEM Universitas
           </span>
         </button>
@@ -57,8 +57,8 @@ export default function Header() {
               onClick={() => navigateTo(path)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
                 location.pathname === path
-                  ? 'bg-purple-600/15 text-purple-300 border-purple-500/25'
-                  : 'text-gray-400 hover:text-gray-200 hover:bg-white/[0.04] border-transparent'
+                  ? 'bg-[#E6F3F7] text-[#004B5F] border-[#CCE7EF]'
+                  : 'text-slate-500 hover:text-[#004B5F] hover:bg-slate-100 border-transparent'
               }`}
             >
               <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -66,15 +66,15 @@ export default function Header() {
             </button>
           ))}
 
-          <div className="w-px h-5 bg-white/10 mx-1" />
+          <div className="w-px h-5 bg-gray-300 mx-1" />
 
           {/* Portal Admin */}
           <button
             onClick={() => navigateTo('/admin')}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
               location.pathname === '/admin'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-md shadow-purple-900/50'
-                : 'bg-white/[0.04] text-gray-400 hover:text-gray-200 hover:bg-white/[0.07] border-white/[0.06]'
+                ? 'bg-[#004B5F] text-white border-[#004B5F] shadow-md shadow-[#004B5F]/20'
+                : 'bg-white text-slate-500 hover:text-[#004B5F] hover:bg-slate-50 border-gray-200'
             }`}
           >
             <Shield className="h-3.5 w-3.5 shrink-0" />
@@ -85,7 +85,7 @@ export default function Header() {
         {/* Hamburger Menu Button for mobile/tablet */}
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="xl:hidden p-2 rounded-lg border border-white/10 bg-white/[0.02] text-gray-400 hover:text-white cursor-pointer"
+          className="xl:hidden p-2 rounded-lg border border-gray-200 bg-slate-50 text-slate-500 hover:text-[#004B5F] cursor-pointer"
         >
           {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -93,7 +93,7 @@ export default function Header() {
 
       {/* Mobile Navigation Drawer */}
       {mobileMenuOpen && (
-        <div className="xl:hidden border-t border-white/[0.05] bg-[#030712] py-4 px-4 space-y-2">
+        <div className="xl:hidden border-t border-gray-200 bg-white py-4 px-4 space-y-2">
           
           {/* Primary Items */}
           {PRIMARY_NAV.map(({ path, label, icon: Icon }) => (
@@ -102,8 +102,8 @@ export default function Header() {
               onClick={() => navigateTo(path)}
               className={`flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
                 location.pathname === path
-                  ? 'bg-purple-600/15 text-purple-300 border-purple-500/20'
-                  : 'text-gray-400 border-transparent hover:text-gray-200 hover:bg-white/[0.02]'
+                  ? 'bg-[#E6F3F7] text-[#004B5F] border-[#CCE7EF]'
+                  : 'text-slate-500 border-transparent hover:text-[#004B5F] hover:bg-slate-50'
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -111,15 +111,15 @@ export default function Header() {
             </button>
           ))}
 
-          <hr className="border-white/5 my-2" />
+          <hr className="border-gray-200 my-2" />
 
           {/* Portal Admin */}
           <button
             onClick={() => navigateTo('/admin')}
             className={`flex items-center gap-2.5 w-full px-4 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
               location.pathname === '/admin'
-                ? 'bg-purple-600 text-white border-purple-500 shadow-md'
-                : 'bg-white/[0.04] text-gray-400 border-white/[0.06]'
+                ? 'bg-[#004B5F] text-white border-[#004B5F] shadow-md'
+                : 'bg-white text-slate-500 border-gray-200'
             }`}
           >
             <Shield className="h-4 w-4 shrink-0" />

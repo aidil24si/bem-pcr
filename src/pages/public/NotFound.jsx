@@ -9,21 +9,21 @@ export default function NotFound() {
 
   return (
     <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-6 max-w-md mx-auto">
-      <div className="p-4 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-full animate-pulse">
-        <Map className="h-10 w-10" />
+      <div className="p-5 bg-[#E6F3F7] border border-[#CCE7EF] text-[#004B5F] rounded-full animate-pulse shadow-sm">
+        <Map className="h-12 w-12" />
       </div>
-      <div className="space-y-2">
-        <h2 className="text-3xl font-extrabold text-white">404</h2>
-        <h3 className="text-lg font-bold text-gray-200">Halaman Tidak Ditemukan</h3>
-        <p className="text-xs text-gray-400 leading-relaxed">
+      <div className="space-y-3">
+        <h2 className="text-4xl font-extrabold text-[#004B5F]">404</h2>
+        <h3 className="text-xl font-extrabold text-slate-700">Halaman Tidak Ditemukan</h3>
+        <p className="text-sm text-slate-500 leading-relaxed max-w-xs mx-auto">
           Tautan yang Anda ikuti salah, atau halaman telah dipindahkan oleh pengelola sistem BEM.
         </p>
       </div>
       <button
         onClick={() => navigate('/')}
-        className="py-2 px-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors shadow-lg shadow-purple-900/30"
+        className="py-3 px-6 rounded-xl bg-[#004B5F] hover:bg-[#003847] text-white font-bold text-sm flex items-center gap-2 cursor-pointer transition-all shadow-lg shadow-[#004B5F]/20 hover:-translate-y-0.5"
       >
-        <Home className="h-3.5 w-3.5" />
+        <Home className="h-4 w-4" />
         Kembali ke Beranda
       </button>
     </div>

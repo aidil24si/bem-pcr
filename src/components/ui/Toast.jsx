@@ -16,16 +16,16 @@ export default function Toast({ message, type = 'success', onClose, duration = 4
 
   const typeConfig = {
     success: {
-      bg: 'bg-emerald-950/90 border-emerald-800/80 text-emerald-300',
-      icon: <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0" />
+      bg: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+      icon: <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
     },
     error: {
-      bg: 'bg-red-950/90 border-red-800/80 text-red-300',
-      icon: <AlertTriangle className="h-5 w-5 text-red-400 shrink-0" />
+      bg: 'bg-red-50 border-red-200 text-red-800',
+      icon: <AlertTriangle className="h-5 w-5 text-red-600 shrink-0" />
     },
     info: {
-      bg: 'bg-blue-950/90 border-blue-800/80 text-blue-300',
-      icon: <Info className="h-5 w-5 text-blue-400 shrink-0" />
+      bg: 'bg-blue-50 border-blue-200 text-blue-800',
+      icon: <Info className="h-5 w-5 text-blue-600 shrink-0" />
     }
   };
 
@@ -40,7 +40,7 @@ export default function Toast({ message, type = 'success', onClose, duration = 4
         </div>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-white transition-colors cursor-pointer p-0.5 rounded-lg hover:bg-white/5"
+          className="text-slate-400 hover:text-slate-600 transition-colors cursor-pointer p-0.5 rounded-lg hover:bg-slate-200"
         >
           <X className="h-4 w-4" />
         </button>
