@@ -4,7 +4,8 @@ const MockDatabaseContext = createContext(null);
 
 // Initial Seed Data
 const INITIAL_KEMENTERIAN = [
-  { id: 'k-presma', nama_kementerian: 'Presiden & Wakil Presiden Mahasiswa', hierarki_order: 0, rumpun: 'Pimpinan' },
+  { id: 'k-presma', nama_kementerian: 'Presiden & Wakil Presiden Mahasiswa', hierarki_order: 0, rumpun: 'Inti' },
+  { id: 'k-proto', nama_kementerian: 'Protokoler', hierarki_order: 1, rumpun: 'Inti' },
   { id: 'k-sekum-1', nama_kementerian: 'Sekretaris Umum 1', hierarki_order: 1, rumpun: 'Inti' },
   { id: 'k-sekum-2', nama_kementerian: 'Sekretaris Umum 2', hierarki_order: 1, rumpun: 'Inti' },
   { id: 'k-bendum-1', nama_kementerian: 'Bendahara Umum 1', hierarki_order: 1, rumpun: 'Inti' },
@@ -22,28 +23,63 @@ const INITIAL_KEMENTERIAN = [
 ];
 
 const INITIAL_PENGURUS = [
-  {
-    id: 'p1',
-    kementerian_id: 'k-presma',
-    nama: 'Aidil Ikhsan Rezki Idris',
-    jabatan: 'Presiden Mahasiswa',
-    prestasi_akademik: ['Juara 1 Web Design Nasional'],
-    prestasi_non_akademik: ['Debat Bahasa Inggris'],
-    riwayat_organisasi: ['Ketua HIMA 2024'],
-    foto_url: null,
-    periode_tahun: '2026/2027',
-  },
-  {
-    id: 'p2',
-    kementerian_id: 'k-presma',
-    nama: 'Baydella',
-    jabatan: 'Wakil Presiden Mahasiswa',
-    prestasi_akademik: ['IPK 3.9', 'Mawapres 2025'],
-    prestasi_non_akademik: [],
-    riwayat_organisasi: ['Sekretaris BEM 2025'],
-    foto_url: null,
-    periode_tahun: '2026/2027',
-  },
+  // 1. TOP EXECUTIVE (LEVEL 0)
+  { id: 'p1', nama: 'Aidil Ikhsan Rezki Idris', jabatan: 'Presiden Mahasiswa', kementerian_id: 'k-presma', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p2', nama: 'Baydella', jabatan: 'Wakil Presiden Mahasiswa', kementerian_id: 'k-presma', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  // 2. CORE EXECUTIVE / SECRETARIAT (LEVEL 1)
+  { id: 'p3', nama: 'Bagus Aditya Wardana', jabatan: 'Protokoler Utama', kementerian_id: 'k-protokol', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p4', nama: 'Zaskia Az-Zahra', jabatan: 'Sekretaris Umum 1', kementerian_id: 'k-sekum-1', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p5', nama: 'Amelia Nur Rismayanti', jabatan: 'Sekretaris Umum 2', kementerian_id: 'k-sekum-2', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p6', nama: 'Manisahayu', jabatan: 'Bendahara Umum 1', kementerian_id: 'k-bendum-1', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p7', nama: 'Aila Marwa', jabatan: 'Bendahara Umum 2', kementerian_id: 'k-bendum-2', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+
+  // 3. RUMPUN PELAYANAN & ISU (LEVEL 2)
+  { id: 'p8', nama: 'Radit Al Ikhsan', jabatan: 'Menteri Advokesma', kementerian_id: 'k-advokesma', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p9', nama: 'Nuraiva Yuliana Dalfi', jabatan: 'Sekretaris Menteri Advokesma', kementerian_id: 'k-advokesma', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p10', nama: 'Rafael Ardhiwinatta Lubis', jabatan: 'Staff 1 Advokesma', kementerian_id: 'k-advokesma', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p11', nama: 'Yusuf Hamdani', jabatan: 'Staff 2 Advokesma', kementerian_id: 'k-advokesma', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p12', nama: 'Azza Zhafira Nahuway', jabatan: 'Staff 3 Advokesma', kementerian_id: 'k-advokesma', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  { id: 'p13', nama: 'Muhammad Raihan Fadillah Ashabi', jabatan: 'Menteri Kemensospol', kementerian_id: 'k-kemensospol', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p14', nama: 'Nungki Kusuma Wardani', jabatan: 'Sekretaris Menteri Kemensospol', kementerian_id: 'k-kemensospol', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p15', nama: 'Helena Azriya', jabatan: 'Staff Kemensospol', kementerian_id: 'k-kemensospol', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+
+  // 4. RUMPUN INTERNAL & SDM (LEVEL 2)
+  { id: 'p16', nama: 'Sahata Repaldo Sitinjak', jabatan: 'Menteri Kemenag', kementerian_id: 'k-kemenag', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p17', nama: 'Muahammad Raffi Akbar', jabatan: 'Sekretaris Menteri Kemenag', kementerian_id: 'k-kemenag', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p18', nama: 'Zulfida Deby Riana', jabatan: 'Staff 1 Kemenag', kementerian_id: 'k-kemenag', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  { id: 'p19', nama: 'M. Iqbal Ramadhan', jabatan: 'Menteri Pesdikma', kementerian_id: 'k-psdm', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p20', nama: 'Nabilla Aulia Vani', jabatan: 'Sekretaris Menteri Pesdikma', kementerian_id: 'k-psdm', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p21', nama: 'Andhika Wijaya Kusuma', jabatan: 'Staff 1 Pesdikma', kementerian_id: 'k-psdm', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p22', nama: 'Lathifah Melia Putri', jabatan: 'Staff 2 Pesdikma', kementerian_id: 'k-psdm', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p23', nama: 'Muhammad Rizky Hidayat', jabatan: 'Staff 3 Pesdikma', kementerian_id: 'k-psdm', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  { id: 'p24', nama: 'Farel Rizki Fahrillah', jabatan: 'Menteri Kemenpora', kementerian_id: 'k-kemenpora', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p25', nama: 'Raihan Fadli Adi Nugroho', jabatan: 'Sekretaris Menteri Kemenpora', kementerian_id: 'k-kemenpora', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p26', nama: 'Muhammd Raja Muiz', jabatan: 'Staff 1 Kemenpora', kementerian_id: 'k-kemenpora', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p27', nama: 'Reza Okta Farezi', jabatan: 'Staff 2 Kemenpora', kementerian_id: 'k-kemenpora', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+
+  // 5. RUMPUN EKSTERNAL & KREATIF (LEVEL 2)
+  { id: 'p28', nama: 'Nabil Putra Yonma', jabatan: 'Menteri Kemenlu', kementerian_id: 'k-kemenlu', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p29', nama: 'Aliya Raushani Putri Harahap', jabatan: 'Sekretaris Menteri Kemenlu', kementerian_id: 'k-kemenlu', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p30', nama: 'Rifqi Pratama', jabatan: 'Staff 1 Kemenlu', kementerian_id: 'k-kemenlu', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p31', nama: 'Chrisheyla Putri Chintya br Napitupulu', jabatan: 'Staff 2 Kemenlu', kementerian_id: 'k-kemenlu', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  { id: 'p32', nama: 'Muhammad Adlu', jabatan: 'Menteri Kominfo', kementerian_id: 'k-kominfo', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p33', nama: 'Riska Handayani', jabatan: 'Sekretaris Menteri Kominfo', kementerian_id: 'k-kominfo', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p34', nama: 'Muhammad Zihni Fawwas', jabatan: 'Staff 1 Kominfo', kementerian_id: 'k-kominfo', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p35', nama: 'Muhammad Rivaldi', jabatan: 'Staff 2 Kominfo', kementerian_id: 'k-kominfo', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  { id: 'p36', nama: 'Fitri Ariani', jabatan: 'Menteri Kemenkraf', kementerian_id: 'k-kemenkraf', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p37', nama: 'Lakeisha Fadlin', jabatan: 'Sekretaris Menteri Kemenkraf', kementerian_id: 'k-kemenkraf', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p38', nama: 'Zalva Zahiyah Amanda Davia Putri', jabatan: 'Staff 1 Kemenkraf', kementerian_id: 'k-kemenkraf', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  
+  { id: 'p39', nama: 'Farhan Habibburrahman', jabatan: 'Menteri Kemensenbud', kementerian_id: 'k-kemensenbud', is_pimpinan: true, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p40', nama: 'Ghina Fadhila Antoni', jabatan: 'Sekretaris Menteri Kemensenbud', kementerian_id: 'k-kemensenbud', is_pimpinan: false, is_sekmen: true, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p41', nama: 'April Lita', jabatan: 'Staff 1 Kemensenbud', kementerian_id: 'k-kemensenbud', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] },
+  { id: 'p42', nama: 'Muhammad Rasya Farezi', jabatan: 'Staff 2 Kemensenbud', kementerian_id: 'k-kemensenbud', is_pimpinan: false, is_sekmen: false, foto_url: null, periode_tahun: '2026/2027', prestasi_akademik: [], prestasi_non_akademik: [], riwayat_organisasi: [] }
 ];
 
 const INITIAL_RILIS = [
@@ -100,7 +136,11 @@ const INITIAL_PROFILES = [
 export const MockDatabaseProvider = ({ children }) => {
   // Load initial state from local storage or fallback to seed data
   const [kementerian] = useState(() => JSON.parse(localStorage.getItem('mvp_kementerian')) || INITIAL_KEMENTERIAN);
-  const [pengurus, setPengurus] = useState(() => JSON.parse(localStorage.getItem('mvp_pengurus')) || INITIAL_PENGURUS);
+  const [pengurus, setPengurus] = useState(() => {
+    const saved = JSON.parse(localStorage.getItem('mvp_pengurus'));
+    if (saved && saved.length >= 42) return saved;
+    return INITIAL_PENGURUS;
+  });
   const [aspirasi, setAspirasi] = useState(() => JSON.parse(localStorage.getItem('mvp_aspirasi')) || INITIAL_ASPIRASI);
   const [rilisAdvokasi, setRilisAdvokasi] = useState(() => JSON.parse(localStorage.getItem('mvp_rilis')) || INITIAL_RILIS);
   const [profiles] = useState(() => JSON.parse(localStorage.getItem('mvp_profiles')) || INITIAL_PROFILES);

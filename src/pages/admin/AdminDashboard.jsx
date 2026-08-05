@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useMockDatabase } from '../../context/MockDatabaseContext';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
-import { LogOut, Check, X, Shield, Users, MessageSquare, Layers, Menu, Trash2, Edit3, History, Archive } from 'lucide-react';
+import { LogOut, Check, X, Shield, Users, User, MessageSquare, Layers, Menu, Trash2, Edit3, History, Archive } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
 import Toast from '../../components/ui/Toast';
@@ -64,11 +64,7 @@ export default function AdminDashboard() {
   const userRole = session?.user?.role;
   const userNama = session?.user?.nama || 'Admin BEM';
 
-  useEffect(() => {
-    if (session && !formKementerianId && kementerian.length > 0) {
-      setFormKementerianId(kementerian[0].id);
-    }
-  }, [session, kementerian, formKementerianId]);
+
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -132,18 +128,25 @@ export default function AdminDashboard() {
     setActionSuccess('');
 
     try {
+      const trimmedNama = formNama.trim();
+      const trimmedJabatan = formJabatan.trim();
+      
+      if (!trimmedNama || !trimmedJabatan || !formKementerianId) {
+        throw new Error("Nama, Jabatan, dan Kementerian tidak boleh kosong atau hanya berisi spasi.");
+      }
+
       const prestasiAkademik = formAkademik.split('\n').map(s => s.trim()).filter(Boolean);
       const prestasiNonAkademik = formNonAkademik.split('\n').map(s => s.trim()).filter(Boolean);
       const riwayatOrganisasi = formOrganisasi.split('\n').map(s => s.trim()).filter(Boolean);
 
       const payload = {
-        nama: formNama,
-        jabatan: formJabatan,
+        nama: trimmedNama,
+        jabatan: trimmedJabatan,
         kementerian_id: formKementerianId,
         prestasi_akademik: prestasiAkademik,
         prestasi_non_akademik: prestasiNonAkademik,
         riwayat_organisasi: riwayatOrganisasi,
-        foto_url: formFotoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+        foto_url: formFotoUrl.trim() !== '' ? formFotoUrl.trim() : null,
         periode_tahun: formPeriode,
       };
 
@@ -165,12 +168,14 @@ export default function AdminDashboard() {
     setEditingPengurus(null);
     setFormNama('');
     setFormJabatan('');
-    setFormKementerianId(kementerian[0]?.id || '');
+    setFormKementerianId('');
     setFormAkademik('');
     setFormNonAkademik('');
     setFormOrganisasi('');
     setFormFotoUrl('');
     setFormPeriode('2026/2027');
+    setActionSuccess('');
+    setActionError('');
   };
 
   const handleEditPengurusClick = (p) => {
@@ -178,17 +183,24 @@ export default function AdminDashboard() {
     setFormNama(p.nama);
     setFormJabatan(p.jabatan);
     setFormKementerianId(p.kementerian_id);
-    setFormAkademik(p.prestasi_akademik.join('\n'));
-    setFormNonAkademik(p.prestasi_non_akademik.join('\n'));
-    setFormOrganisasi(p.riwayat_organisasi.join('\n'));
+    setFormAkademik((p.prestasi_akademik || []).join('\n'));
+    setFormNonAkademik((p.prestasi_non_akademik || []).join('\n'));
+    setFormOrganisasi((p.riwayat_organisasi || []).join('\n'));
     setFormFotoUrl(p.foto_url || '');
     setFormPeriode(p.periode_tahun);
+    setActionSuccess('');
+    setActionError('');
   };
 
   const executeDeletePengurus = () => {
     if (!confirmDeletePengurus) return;
     try {
       hapusPengurus(confirmDeletePengurus.id);
+      
+      if (editingPengurus && editingPengurus.id === confirmDeletePengurus.id) {
+        resetPengurusForm();
+      }
+
       setToastType('success');
       setToastMsg(`Data pengurus ${confirmDeletePengurus.nama} berhasil dihapus.`);
     } catch (err) {

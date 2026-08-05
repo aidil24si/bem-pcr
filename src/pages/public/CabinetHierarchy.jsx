@@ -317,7 +317,7 @@ export default function CabinetHierarchy() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-xs text-slate-500 italic">Tidak ada catatan prestasi akademik.</p>
+                  <p className="text-xs text-slate-500 italic">Belum ada rekam jejak yang diinput.</p>
                 )}
               </TabsContent>
 
@@ -334,7 +334,7 @@ export default function CabinetHierarchy() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-xs text-slate-500 italic">Tidak ada catatan prestasi non-akademik.</p>
+                  <p className="text-xs text-slate-500 italic">Belum ada rekam jejak yang diinput.</p>
                 )}
               </TabsContent>
 
@@ -351,7 +351,7 @@ export default function CabinetHierarchy() {
                     ))}
                   </ul>
                 ) : (
-                  <p className="text-xs text-slate-500 italic">Tidak ada catatan riwayat organisasi.</p>
+                  <p className="text-xs text-slate-500 italic">Belum ada rekam jejak yang diinput.</p>
                 )}
               </TabsContent>
             </Tabs>
