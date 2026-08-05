@@ -19,6 +19,8 @@ export default function AdminDashboard() {
     aspirasi,
     rilisAdvokasi,
     konsolidasiAspirasi,
+    unconsolidateRilis,
+    editRilisAdvokasi,
     tambahPengurus,
     editPengurus,
     hapusPengurus
@@ -28,12 +30,12 @@ export default function AdminDashboard() {
   const [toastMsg, setToastMsg] = useState('');
   const [toastType, setToastType] = useState('success');
   const [confirmDeletePengurus, setConfirmDeletePengurus] = useState(null);
+  const [confirmUnconsolidate, setConfirmUnconsolidate] = useState(null);
+  const [editingRilis, setEditingRilis] = useState(null);
+  const [editRilisTitle, setEditRilisTitle] = useState('');
+  const [editRilisCategory, setEditRilisCategory] = useState('');
+  const [editRilisDiscussion, setEditRilisDiscussion] = useState('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Login State
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [loginError, setLoginError] = useState('');
 
   // Dashboard Navigation State
   const [activeTab, setActiveTab] = useState('moderation');
@@ -65,16 +67,6 @@ export default function AdminDashboard() {
   const userNama = session?.user?.nama || 'Admin BEM';
 
 
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    setLoginError('');
-    try {
-      login(email, password);
-    } catch (err) {
-      setLoginError(err.message);
-    }
-  };
 
   const handleLogout = () => {
     logout();
@@ -119,6 +111,49 @@ export default function AdminDashboard() {
       setToastType('error');
       setToastMsg(`Gagal membuat rilis: ${err.message}`);
     }
+  };
+
+  const executeUnconsolidate = () => {
+    if (!confirmUnconsolidate) return;
+    try {
+      unconsolidateRilis(confirmUnconsolidate.id);
+      setToastType('success');
+      setToastMsg(`Rilis '${confirmUnconsolidate.judul_isu}' berhasil dibatalkan dan aspirasi dikembalikan ke antrean.`);
+    } catch (err) {
+      setToastType('error');
+      setToastMsg(`Gagal membatalkan rilis: ${err.message}`);
+    } finally {
+      setConfirmUnconsolidate(null);
+    }
+  };
+
+  const handleEditRilisSubmit = (e) => {
+    e.preventDefault();
+    if (!editRilisTitle.trim() || !editRilisDiscussion.trim()) {
+      setToastType('error');
+      setToastMsg('Harap lengkapi judul dan pembahasan rilis.');
+      return;
+    }
+    try {
+      editRilisAdvokasi(editingRilis.id, {
+        judul_isu: editRilisTitle,
+        kategori_isu: editRilisCategory,
+        pembahasan_offline: editRilisDiscussion,
+      });
+      setToastType('success');
+      setToastMsg('Perubahan rilis berhasil disimpan.');
+      setEditingRilis(null);
+    } catch (err) {
+      setToastType('error');
+      setToastMsg(`Gagal mengedit rilis: ${err.message}`);
+    }
+  };
+
+  const openEditRilisModal = (rilis) => {
+    setEditingRilis(rilis);
+    setEditRilisTitle(rilis.judul_isu);
+    setEditRilisCategory(rilis.kategori_isu);
+    setEditRilisDiscussion(rilis.pembahasan_offline);
   };
 
   // Pengurus Handlers
@@ -220,52 +255,6 @@ export default function AdminDashboard() {
     const found = rilisAdvokasi.find(r => r.id === rilisId);
     return found ? found.judul_isu : 'Rilis Tidak Diketahui';
   };
-
-  if (!session) {
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center relative z-10 px-4">
-        <Card className="w-full max-w-md border-gray-200 bg-white shadow-xl">
-          <CardHeader className="text-center pb-2">
-            <div className="mx-auto bg-[#E6F3F7] p-3 rounded-full mb-2 border border-[#CCE7EF]">
-              <Shield className="h-6 w-6 text-[#004B5F]" />
-            </div>
-            <CardTitle className="text-[#004B5F] text-2xl font-extrabold">Admin Portal</CardTitle>
-            <CardDescription className="text-slate-500">Akses khusus sistem MVP BEM</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold text-[#004B5F]">Email Admin</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-gray-300 rounded-xl text-slate-700 focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none transition-all"
-                  placeholder="bem@pcr.ac.id"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-[#004B5F]">Password</label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  className="w-full mt-1 px-4 py-2.5 bg-slate-50 border border-gray-300 rounded-xl text-slate-700 focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
-              {loginError && <p className="text-xs text-[#EE152A] bg-red-50 p-2.5 rounded-lg border border-red-200 font-medium text-center">{loginError}</p>}
-              <button type="submit" className="w-full py-3 bg-[#004B5F] hover:bg-[#003847] text-white font-bold rounded-xl shadow-lg shadow-[#004B5F]/20 transition-all cursor-pointer mt-2">
-                Masuk Sistem
-              </button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
 
   return (
     <div className="relative bg-slate-50 min-h-screen pb-12">
@@ -466,27 +455,38 @@ export default function AdminDashboard() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {consolidatedAspirations.map((a) => (
-                        <Card key={a.id} className="border-gray-200 bg-white shadow-sm opacity-80 hover:opacity-100 transition-opacity">
-                          <CardHeader className="pb-3 flex flex-row justify-between gap-4 border-b border-gray-100">
-                            <div className="space-y-2">
-                              <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200 tracking-wider">
-                                Terkonsolidasi
-                              </span>
-                              <CardTitle className="text-sm text-slate-500 pt-1">
-                                Dari: {a.identitas ? a.identitas.nama : 'Anonim'}
-                              </CardTitle>
-                            </div>
-                          </CardHeader>
-                          <CardContent className="space-y-4 pt-4">
-                            <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">"{a.deskripsi}"</p>
-                            <div className="bg-[#E6F3F7] border border-[#CCE7EF] p-3 rounded-xl text-[11px] text-[#004B5F]">
-                              <span className="font-extrabold block mb-1 uppercase tracking-wider">Rilis Advokasi:</span>
-                              {getRilisTitle(a.rilis_id)}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                      {consolidatedAspirations.map((a) => {
+                        const rilis = rilisAdvokasi.find(r => r.id === a.rilis_id);
+                        return (
+                          <Card key={a.id} className="border-gray-200 bg-white shadow-sm opacity-80 hover:opacity-100 transition-opacity group relative">
+                            <CardHeader className="pb-3 flex flex-row justify-between gap-4 border-b border-gray-100">
+                              <div className="space-y-2">
+                                <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border bg-emerald-50 text-emerald-700 border-emerald-200 tracking-wider">
+                                  Terkonsolidasi
+                                </span>
+                                <CardTitle className="text-sm text-slate-500 pt-1">
+                                  Dari: {a.identitas ? a.identitas.nama : 'Anonim'}
+                                </CardTitle>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4 pt-4">
+                              <p className="text-sm text-slate-600 line-clamp-3 leading-relaxed">"{a.deskripsi}"</p>
+                              <div className="bg-[#E6F3F7] border border-[#CCE7EF] p-3 rounded-xl text-[11px] text-[#004B5F] flex items-start justify-between gap-2">
+                                <div>
+                                  <span className="font-extrabold block mb-1 uppercase tracking-wider">Rilis Advokasi:</span>
+                                  {rilis ? rilis.judul_isu : 'Rilis Tidak Diketahui'}
+                                </div>
+                                {rilis && (
+                                  <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button onClick={() => openEditRilisModal(rilis)} className="p-1.5 rounded bg-white text-[#004B5F] hover:bg-slate-100 border border-[#CCE7EF] transition-colors shadow-sm" title="Edit Rilis"><Edit3 className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => setConfirmUnconsolidate(rilis)} className="p-1.5 rounded bg-white text-[#EE152A] hover:bg-red-50 border border-red-200 transition-colors shadow-sm" title="Batalkan (Unconsolidate)"><X className="h-3.5 w-3.5" /></button>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
                     </div>
                   )}
                 </>
@@ -520,6 +520,55 @@ export default function AdminDashboard() {
                     <div className="flex gap-3 justify-end pt-4 border-t border-gray-100">
                       <button type="button" onClick={() => setIsConsolidating(false)} className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold cursor-pointer transition-colors hover:text-[#004B5F] hover:bg-slate-200">Batal</button>
                       <button type="submit" className="px-5 py-2.5 bg-[#004B5F] hover:bg-[#003847] text-white rounded-xl text-xs font-bold cursor-pointer shadow-lg shadow-[#004B5F]/20 transition-all hover:-translate-y-0.5">Terbitkan Sekarang</button>
+                    </div>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              {/* MODAL BATALKAN KONSOLIDASI (UNCONSOLIDATE) */}
+              <Dialog open={!!confirmUnconsolidate} onOpenChange={() => setConfirmUnconsolidate(null)}>
+                <DialogContent className="border-gray-200 bg-white">
+                  <DialogHeader>
+                    <DialogTitle className="text-[#004B5F]">Batalkan Rilis Advokasi</DialogTitle>
+                    <DialogDescription className="text-slate-500">
+                      Apakah Anda yakin ingin membatalkan rilis <strong className="text-[#EE152A]">{confirmUnconsolidate?.judul_isu}</strong>? Aspirasi terkait akan dikembalikan ke status "Aspirasi Masuk" (Pending).
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="mt-6 flex justify-end gap-2">
+                    <button onClick={() => setConfirmUnconsolidate(null)} className="px-5 py-2.5 rounded-xl bg-slate-100 text-slate-600 hover:text-[#004B5F] hover:bg-slate-200 text-xs font-bold cursor-pointer transition-colors">Kembali</button>
+                    <button onClick={executeUnconsolidate} className="px-5 py-2.5 rounded-xl bg-[#EE152A] hover:bg-[#C20F20] text-white font-bold text-xs cursor-pointer shadow-lg shadow-[#EE152A]/20 transition-all">Ya, Batalkan Rilis</button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              {/* MODAL EDIT RILIS */}
+              <Dialog open={!!editingRilis} onOpenChange={() => setEditingRilis(null)}>
+                <DialogContent className="border-gray-200 bg-white sm:max-w-xl">
+                  <DialogHeader>
+                    <DialogTitle className="text-[#004B5F] text-xl font-extrabold">Edit Rilis Advokasi</DialogTitle>
+                    <DialogDescription className="text-slate-500">Perbarui detail rilis resmi BEM untuk publik.</DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleEditRilisSubmit} className="space-y-5 mt-4">
+                    <div>
+                      <label className="text-[11px] font-extrabold text-[#004B5F] uppercase tracking-wider">Kategori Isu</label>
+                      <select value={editRilisCategory} onChange={e => setEditRilisCategory(e.target.value)} className="w-full mt-1.5 rounded-xl bg-slate-50 border border-gray-300 px-4 py-3 text-sm text-slate-700 focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none">
+                        <option value="Fasilitas">Fasilitas Kampus</option>
+                        <option value="Akademik & Birokrasi">Akademik & Birokrasi</option>
+                        <option value="Layanan & Ormawa">Layanan & Ormawa</option>
+                        <option value="Lainnya">Lainnya</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-extrabold text-[#004B5F] uppercase tracking-wider">Judul Rilis</label>
+                      <input type="text" required value={editRilisTitle} onChange={e => setEditRilisTitle(e.target.value)} placeholder="Contoh: Perbaikan AC H.3.1" className="w-full mt-1.5 rounded-xl bg-slate-50 border border-gray-300 px-4 py-3 text-sm text-slate-700 focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none" />
+                    </div>
+                    <div>
+                      <label className="text-[11px] font-extrabold text-[#004B5F] uppercase tracking-wider">Hasil Advokasi / Tindakan BEM</label>
+                      <textarea required rows={5} value={editRilisDiscussion} onChange={e => setEditRilisDiscussion(e.target.value)} placeholder="Tuliskan respon resmi BEM yang telah didiskusikan secara offline..." className="w-full mt-1.5 rounded-xl bg-slate-50 border border-gray-300 px-4 py-3 text-sm text-slate-700 focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none resize-none" />
+                    </div>
+                    <div className="flex gap-3 justify-end pt-4 border-t border-gray-100">
+                      <button type="button" onClick={() => setEditingRilis(null)} className="px-5 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold cursor-pointer transition-colors hover:text-[#004B5F] hover:bg-slate-200">Batal</button>
+                      <button type="submit" className="px-5 py-2.5 bg-[#004B5F] hover:bg-[#003847] text-white rounded-xl text-xs font-bold cursor-pointer shadow-lg shadow-[#004B5F]/20 transition-all hover:-translate-y-0.5">Simpan Perubahan</button>
                     </div>
                   </form>
                 </DialogContent>

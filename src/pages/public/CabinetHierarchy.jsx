@@ -146,6 +146,16 @@ export default function CabinetHierarchy() {
           <div className="h-10 w-10 border-4 border-[#004B5F] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-500 text-sm">Mengunduh data pengurus kabinet...</p>
         </div>
+      ) : pengurusList.length === 0 ? (
+        <div className="text-center py-24 border border-dashed border-gray-300 rounded-3xl bg-white shadow-sm mt-8">
+          <div className="bg-slate-50 h-20 w-20 rounded-full flex items-center justify-center mx-auto mb-5 border border-gray-100">
+            <Users className="h-10 w-10 text-slate-300" />
+          </div>
+          <h4 className="font-extrabold text-[#004B5F] text-xl">Data Kepengurusan Kosong</h4>
+          <p className="text-slate-500 mt-2 max-w-md mx-auto">
+            Belum ada anggota kabinet yang terdaftar untuk periode {selectedYear}.
+          </p>
+        </div>
       ) : (
         <div className="space-y-12">
           {/* HIERARCHY LEVEL 1: Presma & Wapresma */}
@@ -205,8 +215,12 @@ export default function CabinetHierarchy() {
                     {ministries.map((min) => {
                       const staff = getPengurusForMinistry(min.id);
                       
-                      const pimpinan = staff.filter(p => p.jabatan.toLowerCase().includes('menteri') || p.jabatan.toLowerCase().includes('koordinator'));
                       const sekmen = staff.filter(p => p.jabatan.toLowerCase().includes('sekretaris') || p.jabatan.toLowerCase().includes('sekmen'));
+                      const pimpinan = staff.filter(p => 
+                        !p.jabatan.toLowerCase().includes('sekretaris') && 
+                        !p.jabatan.toLowerCase().includes('sekmen') && 
+                        (p.jabatan.toLowerCase().includes('menteri') || p.jabatan.toLowerCase().includes('koordinator'))
+                      );
                       const anggota = staff.filter(p => 
                         !p.jabatan.toLowerCase().includes('menteri') && 
                         !p.jabatan.toLowerCase().includes('koordinator') && 

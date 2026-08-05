@@ -14,6 +14,10 @@ export default function AspirasiPublic() {
   // Hanya rilis yang sudah diterbitkan
   const releasesList = rilisAdvokasi.filter(r => r.status === 'diterbitkan');
 
+  // Public Feed State
+  const [publicTab, setPublicTab] = useState('rilis');
+  const [showDraftWarning, setShowDraftWarning] = useState(false);
+
   // Form State
   const [tipeIsu, setTipeIsu] = useState('tangible');
   const [isAnonim, setIsAnonim] = useState(true);
@@ -52,6 +56,10 @@ export default function AspirasiPublic() {
     if (savedNim) setNim(savedNim);
     if (savedEmail) setEmail(savedEmail);
     if (savedDesc) setDeskripsi(savedDesc);
+
+    if (savedTipe === 'tangible' && savedDesc) {
+      setShowDraftWarning(true);
+    }
   }, []);
 
   // Save drafts
@@ -74,6 +82,19 @@ export default function AspirasiPublic() {
       (rel.kategori_isu && rel.kategori_isu.toLowerCase().includes(query))
     );
   }, [searchQuery, releasesList]);
+
+  const handleAnonimToggle = (e) => {
+    const checked = e.target.checked;
+    setIsAnonim(checked);
+    if (checked) {
+      setNama('');
+      setNim('');
+      setEmail('');
+      sessionStorage.removeItem('asp_nama');
+      sessionStorage.removeItem('asp_nim');
+      sessionStorage.removeItem('asp_email');
+    }
+  };
 
   const handleFileChange = async (e) => {
     setErrorMessage('');
@@ -206,7 +227,7 @@ export default function AspirasiPublic() {
                   <input
                     type="checkbox"
                     checked={isAnonim}
-                    onChange={(e) => setIsAnonim(e.target.checked)}
+                    onChange={handleAnonimToggle}
                     className="h-4 w-4 rounded border-gray-300 text-[#004B5F] focus:ring-[#004B5F] cursor-pointer"
                   />
                 </div>
@@ -272,6 +293,12 @@ export default function AspirasiPublic() {
                     <label className="text-sm font-bold text-[#004B5F] block">
                       Unggah Bukti Foto (Wajib untuk Fasilitas)
                     </label>
+                    {showDraftWarning && !buktiFile && (
+                      <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
+                        <ShieldAlert className="h-4 w-4 shrink-0" />
+                        <span>Draf teks dimuat. Silakan unggah ulang foto bukti jika ada.</span>
+                      </div>
+                    )}
                     <div className="relative flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-slate-50 hover:bg-slate-100 transition-colors p-4 cursor-pointer">
                       <input
                         type="file"
@@ -331,89 +358,144 @@ export default function AspirasiPublic() {
 
         {/* Public Feed Column */}
         <div className="lg:col-span-7 space-y-6">
-          {/* Filter Bar */}
-          <div className="flex items-center gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
-            <Search className="h-5 w-5 text-slate-400 shrink-0 ml-1" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari respon rilis advokasi resmi dari keluhan Anda..."
-              className="bg-transparent border-none text-sm text-slate-700 placeholder-slate-400 focus:outline-none w-full px-2"
-            />
+          {/* Tabs */}
+          <div className="flex gap-4 border-b border-gray-200 pb-px mt-1">
+            <button
+              onClick={() => setPublicTab('rilis')}
+              className={`py-3 px-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 cursor-pointer border-b-2 transition-colors ${publicTab === 'rilis' ? 'border-[#004B5F] text-[#004B5F]' : 'border-transparent text-slate-400 hover:text-[#004B5F]'}`}
+            >
+              Rilis Advokasi
+            </button>
+            <button
+              onClick={() => setPublicTab('diproses')}
+              className={`py-3 px-2 text-xs font-extrabold uppercase tracking-wider flex items-center gap-2 cursor-pointer border-b-2 transition-colors ${publicTab === 'diproses' ? 'border-amber-500 text-amber-600' : 'border-transparent text-slate-400 hover:text-amber-600'}`}
+            >
+              Aspirasi Diproses ({allAspirations.filter(a => !a.rilis_id).length})
+            </button>
           </div>
 
-          {/* Feed List */}
-          {filteredReleases.length === 0 ? (
-            <div className="text-center py-16 border border-dashed border-gray-300 rounded-2xl bg-slate-50">
-              <Layers className="h-10 w-10 text-slate-300 mx-auto mb-3" />
-              <p className="text-slate-500 font-medium">Belum ada Rilis Advokasi resmi</p>
-            </div>
-          ) : (
-            <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 custom-scrollbar">
-              {filteredReleases.map((release) => {
-                const linkedAsps = allAspirations.filter(asp => asp.rilis_id === release.id);
-                return (
-                  <Card key={release.id} className="border-gray-200 bg-white hover:border-[#004B5F]/30 transition-all shadow-sm hover:shadow-md">
-                    <CardContent className="p-6 space-y-4">
-                      {/* Header */}
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-[#004B5F] font-bold bg-[#E6F3F7] py-1 px-3 rounded-full border border-[#CCE7EF]">
-                            {release.kategori_isu}
-                          </span>
-                          <span className="text-xs text-slate-500 font-medium">
-                            {new Date(release.tanggal_rilis).toLocaleDateString('id-ID', {
-                              day: 'numeric', month: 'long', year: 'numeric',
-                            })}
-                          </span>
-                        </div>
-                        <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full uppercase font-bold tracking-wider">
-                          Rilis Resmi BEM
-                        </span>
-                      </div>
+          {publicTab === 'rilis' ? (
+            <>
+              {/* Filter Bar */}
+              <div className="flex items-center gap-2 bg-white p-3 rounded-xl border border-gray-200 shadow-sm">
+                <Search className="h-5 w-5 text-slate-400 shrink-0 ml-1" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Cari respon rilis advokasi resmi dari keluhan Anda..."
+                  className="bg-transparent border-none text-sm text-slate-700 placeholder-slate-400 focus:outline-none w-full px-2"
+                />
+              </div>
 
-                      {/* Judul Isu */}
-                      <h3 className="text-lg md:text-xl font-bold text-[#004B5F] leading-snug">
-                        {release.judul_isu}
-                      </h3>
-
-                      {/* Pembahasan Offline */}
-                      <div className="space-y-2">
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hasil Pembahasan & Resolusi BEM:</p>
-                        <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-gray-200">
-                          {release.pembahasan_offline}
-                        </p>
-                      </div>
-
-                      {/* Aspirasi Terkonsolidasi */}
-                      {linkedAsps.length > 0 && (
-                        <div className="pt-4 border-t border-gray-200 space-y-3">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                            Aspirasi Terkonsolidasi ({linkedAsps.length}):
-                          </p>
-                          <div className="space-y-3">
-                            {linkedAsps.map((asp) => (
-                              <div key={asp.id} className="text-xs bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                                <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold text-[#004B5F]">
-                                  <span>{asp.identitas ? asp.identitas.nama : 'Anonim'}</span>
-                                </div>
-                                <p className="text-slate-600 leading-relaxed italic">"{asp.deskripsi}"</p>
-                                {asp.bukti_url && (
-                                  <a href={asp.bukti_url} target="_blank" rel="noreferrer" className="text-[10px] text-[#004B5F] font-bold mt-2 inline-block hover:underline">
-                                    📎 Lihat Lampiran Sanitasi
-                                  </a>
-                                )}
-                              </div>
-                            ))}
+              {/* Feed List */}
+              {filteredReleases.length === 0 ? (
+                <div className="text-center py-16 border border-dashed border-gray-300 rounded-2xl bg-slate-50">
+                  <Layers className="h-10 w-10 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">Belum ada Rilis Advokasi resmi</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 custom-scrollbar">
+                  {filteredReleases.map((release) => {
+                    const linkedAsps = allAspirations.filter(asp => asp.rilis_id === release.id);
+                    return (
+                      <Card key={release.id} className="border-gray-200 bg-white hover:border-[#004B5F]/30 transition-all shadow-sm hover:shadow-md">
+                        <CardContent className="p-6 space-y-4">
+                          {/* Header */}
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-[#004B5F] font-bold bg-[#E6F3F7] py-1 px-3 rounded-full border border-[#CCE7EF]">
+                                {release.kategori_isu}
+                              </span>
+                              <span className="text-xs text-slate-500 font-medium">
+                                {new Date(release.tanggal_rilis).toLocaleDateString('id-ID', {
+                                  day: 'numeric', month: 'long', year: 'numeric',
+                                })}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full uppercase font-bold tracking-wider">
+                              Rilis Resmi BEM
+                            </span>
                           </div>
+
+                          {/* Judul Isu */}
+                          <h3 className="text-lg md:text-xl font-bold text-[#004B5F] leading-snug">
+                            {release.judul_isu}
+                          </h3>
+
+                          {/* Pembahasan Offline */}
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Hasil Pembahasan & Resolusi BEM:</p>
+                            <p className="text-slate-600 text-sm leading-relaxed whitespace-pre-line bg-slate-50 p-4 rounded-xl border border-gray-200">
+                              {release.pembahasan_offline}
+                            </p>
+                          </div>
+
+                          {/* Aspirasi Terkonsolidasi */}
+                          {linkedAsps.length > 0 && (
+                            <div className="pt-4 border-t border-gray-200 space-y-3">
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                                Aspirasi Terkonsolidasi ({linkedAsps.length}):
+                              </p>
+                              <div className="space-y-3">
+                                {linkedAsps.map((asp) => (
+                                  <div key={asp.id} className="text-xs bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
+                                    <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold text-[#004B5F]">
+                                      <span>{asp.identitas ? asp.identitas.nama : 'Anonim'}</span>
+                                    </div>
+                                    <p className="text-slate-600 leading-relaxed italic">"{asp.deskripsi}"</p>
+                                    {asp.bukti_url && (
+                                      <a href={asp.bukti_url} target="_blank" rel="noreferrer" className="text-[10px] text-[#004B5F] font-bold mt-2 inline-block hover:underline">
+                                        📎 Lihat Lampiran Sanitasi
+                                      </a>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Feed List Aspirasi Diproses */}
+              {allAspirations.filter(a => !a.rilis_id).length === 0 ? (
+                <div className="text-center py-16 border border-dashed border-gray-300 rounded-2xl bg-slate-50">
+                  <CheckCircle2 className="h-10 w-10 text-emerald-400 mx-auto mb-3" />
+                  <p className="text-slate-500 font-medium">Semua aspirasi telah ditanggapi.</p>
+                </div>
+              ) : (
+                <div className="space-y-4 max-h-[75vh] overflow-y-auto pr-1 custom-scrollbar">
+                  {allAspirations.filter(a => !a.rilis_id).map((asp) => (
+                    <Card key={asp.id} className="border-gray-200 bg-white hover:border-[#004B5F]/30 transition-all shadow-sm hover:shadow-md">
+                      <CardContent className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="space-y-1.5">
+                          <span className="text-[10px] text-slate-600 font-extrabold bg-slate-100 py-1 px-2.5 rounded-full border border-gray-200 uppercase tracking-wider">
+                            {asp.tipe_isu === 'tangible' ? 'Fasilitas' : 'Birokrasi'}
+                          </span>
+                          <p className="text-sm font-bold text-[#004B5F]">
+                            Laporan Masuk (Anonim)
+                          </p>
+                          <p className="text-xs text-slate-400 font-medium">
+                            {new Date(asp.created_at).toLocaleDateString('id-ID', {
+                              day: '2-digit', month: 'short', year: 'numeric',
+                            })}
+                          </p>
                         </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
+                        <span className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-full font-bold whitespace-nowrap self-start sm:self-center">
+                          ⏳ Dalam Pengkajian BEM
+                        </span>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

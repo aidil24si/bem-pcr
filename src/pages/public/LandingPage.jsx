@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMockDatabase } from '../../context/MockDatabaseContext';
 import {
   MessageSquare,
@@ -140,7 +141,8 @@ function LeaderCard({ pengurus }) {
 // ============================================================
 // Main Landing Page Component
 // ============================================================
-export default function LandingPage({ onNavigate }) {
+export default function LandingPage() {
+  const navigate = useNavigate();
   const { kementerian, pengurus, aspirasi, rilisAdvokasi } = useMockDatabase();
   const [pimpinan, setPimpinan] = useState([]);
   const [stats, setStats] = useState({ kementerian: 0, pengurus: 0, aspirasi: 0, rilis: 0 });
@@ -197,14 +199,14 @@ export default function LandingPage({ onNavigate }) {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-2">
             <button
-              onClick={() => onNavigate('aspirasi')}
+              onClick={() => navigate('/aspirasi')}
               className="flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#EE152A] hover:bg-[#C20F20] text-white font-bold text-sm shadow-xl shadow-[#EE152A]/20 hover:shadow-[#EE152A]/40 transition-all hover:-translate-y-0.5 cursor-pointer"
             >
               <MessageSquare className="h-4 w-4" />
               Sampaikan Aspirasi
             </button>
             <button
-              onClick={() => onNavigate('kabinet')}
+              onClick={() => navigate('/kabinet')}
               className="flex items-center gap-2 px-7 py-3.5 rounded-xl border border-gray-200 bg-white text-[#004B5F] font-bold text-sm hover:border-[#004B5F]/50 hover:bg-slate-50 transition-all hover:-translate-y-0.5 cursor-pointer shadow-sm hover:shadow-md"
             >
               <Users className="h-4 w-4" />
@@ -255,7 +257,7 @@ export default function LandingPage({ onNavigate }) {
               title="Kotak Aspirasi"
               description="Sampaikan keluhan, saran, dan ide Anda secara anonim maupun terbuka. Setiap aspirasi dimoderasi dan diteruskan ke pihak berwenang."
               buttonLabel="Sampaikan Sekarang"
-              onClick={() => onNavigate('aspirasi')}
+              onClick={() => navigate('/aspirasi')}
               accent="purple"
             />
             <FeatureCard
@@ -263,7 +265,7 @@ export default function LandingPage({ onNavigate }) {
               title="Struktur Kabinet"
               description="Kenali pengurus BEM, latar belakang, prestasi, dan riwayat organisasi mereka. Tersedia untuk setiap periode kepengurusan."
               buttonLabel="Lihat Kabinet"
-              onClick={() => onNavigate('kabinet')}
+              onClick={() => navigate('/kabinet')}
               accent="indigo"
             />
           </div>
@@ -334,7 +336,7 @@ export default function LandingPage({ onNavigate }) {
             </div>
             <div className="text-center">
               <button
-                onClick={() => onNavigate('kabinet')}
+                onClick={() => navigate('/kabinet')}
                 className="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl border border-gray-200 text-slate-500 hover:text-[#004B5F] hover:border-[#004B5F]/40 hover:bg-slate-50 text-sm font-semibold transition-all cursor-pointer"
               >
                 Lihat Seluruh Struktur Kabinet
@@ -363,7 +365,7 @@ export default function LandingPage({ onNavigate }) {
                 BEM siap mendengar dan memperjuangkan suaramu. Kirimkan aspirasi secara anonim atau dengan identitas — keduanya kami jamin privasi dan keamanannya.
               </p>
               <button
-                onClick={() => onNavigate('aspirasi')}
+                onClick={() => navigate('/aspirasi')}
                 className="inline-flex items-center gap-2 px-8 py-4 rounded-xl bg-[#EE152A] hover:bg-[#C20F20] text-white font-bold text-sm shadow-xl shadow-[#EE152A]/20 hover:shadow-[#EE152A]/40 transition-all hover:-translate-y-0.5 cursor-pointer"
               >
                 <MessageSquare className="h-4 w-4" />

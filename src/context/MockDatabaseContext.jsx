@@ -134,29 +134,62 @@ const INITIAL_PROFILES = [
 ];
 
 export const MockDatabaseProvider = ({ children }) => {
-  // Load initial state from local storage or fallback to seed data
-  const [kementerian] = useState(() => JSON.parse(localStorage.getItem('mvp_kementerian')) || INITIAL_KEMENTERIAN);
+  // Static configuration data (Read-Only)
+  // Served directly from memory to prevent stale cache issues
+  const kementerian = INITIAL_KEMENTERIAN;
+  const profiles = INITIAL_PROFILES;
+
+  // Mutable state synced with local storage
   const [pengurus, setPengurus] = useState(() => {
     const saved = JSON.parse(localStorage.getItem('mvp_pengurus'));
-    if (saved && saved.length >= 42) return saved;
+    if (saved && saved.length >= 42) {
+      // Migrate legacy data that might not have `periode_tahun`
+      return saved.map(p => ({
+        ...p,
+        periode_tahun: p.periode_tahun || '2026/2027'
+      }));
+    }
     return INITIAL_PENGURUS;
   });
   const [aspirasi, setAspirasi] = useState(() => JSON.parse(localStorage.getItem('mvp_aspirasi')) || INITIAL_ASPIRASI);
   const [rilisAdvokasi, setRilisAdvokasi] = useState(() => JSON.parse(localStorage.getItem('mvp_rilis')) || INITIAL_RILIS);
-  const [profiles] = useState(() => JSON.parse(localStorage.getItem('mvp_profiles')) || INITIAL_PROFILES);
+
   
   // Auth Session
   const [session, setSession] = useState(() => JSON.parse(localStorage.getItem('mvp_session')) || null);
 
-  // Sync to local storage
+  // Decoupled sync to local storage
+  useEffect(() => localStorage.setItem('mvp_pengurus', JSON.stringify(pengurus)), [pengurus]);
+  useEffect(() => localStorage.setItem('mvp_aspirasi', JSON.stringify(aspirasi)), [aspirasi]);
+  useEffect(() => localStorage.setItem('mvp_rilis', JSON.stringify(rilisAdvokasi)), [rilisAdvokasi]);
+  useEffect(() => localStorage.setItem('mvp_session', JSON.stringify(session)), [session]);
+
+  // One-time aggressive cache sanitation to remove obsolete static keys
   useEffect(() => {
-    localStorage.setItem('mvp_kementerian', JSON.stringify(kementerian));
-    localStorage.setItem('mvp_pengurus', JSON.stringify(pengurus));
-    localStorage.setItem('mvp_aspirasi', JSON.stringify(aspirasi));
-    localStorage.setItem('mvp_rilis', JSON.stringify(rilisAdvokasi));
-    localStorage.setItem('mvp_profiles', JSON.stringify(profiles));
-    localStorage.setItem('mvp_session', JSON.stringify(session));
-  }, [kementerian, pengurus, aspirasi, rilisAdvokasi, profiles, session]);
+    localStorage.removeItem('mvp_kementerian');
+    localStorage.removeItem('mvp_profiles');
+  }, []);
+
+  // Cross-tab synchronization
+  useEffect(() => {
+    const handleStorageChange = (e) => {
+      if (!e.newValue) return;
+      try {
+        const parsed = JSON.parse(e.newValue);
+        switch (e.key) {
+          case 'mvp_pengurus': setPengurus(parsed); break;
+          case 'mvp_aspirasi': setAspirasi(parsed); break;
+          case 'mvp_rilis': setRilisAdvokasi(parsed); break;
+          case 'mvp_session': setSession(parsed); break;
+          default: break;
+        }
+      } catch (err) {
+        console.error("Error parsing storage event", err);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   // Auth Methods
   const login = (email, password) => {
@@ -204,6 +237,15 @@ export const MockDatabaseProvider = ({ children }) => {
     setAspirasi(updatedAspirasi);
   };
 
+  const unconsolidateRilis = (rilisId) => {
+    setRilisAdvokasi(prev => prev.filter(r => r.id !== rilisId));
+    setAspirasi(prev => prev.map(asp => asp.rilis_id === rilisId ? { ...asp, rilis_id: null } : asp));
+  };
+
+  const editRilisAdvokasi = (rilisId, newData) => {
+    setRilisAdvokasi(prev => prev.map(r => r.id === rilisId ? { ...r, ...newData } : r));
+  };
+
   // Pengurus Methods
   const tambahPengurus = (data) => {
     const newPengurus = {
@@ -233,6 +275,8 @@ export const MockDatabaseProvider = ({ children }) => {
       logout,
       tambahAspirasi,
       konsolidasiAspirasi,
+      unconsolidateRilis,
+      editRilisAdvokasi,
       tambahPengurus,
       editPengurus,
       hapusPengurus
