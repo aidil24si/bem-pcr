@@ -5,6 +5,6 @@
  * @returns {boolean} - True if valid, false otherwise
  */
 export const validateEmail = (email) => {
-  const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const regex = /^[^\s@]+@mahasiswa\.pcr\.ac\.id$/i;
   return regex.test(email);
 };

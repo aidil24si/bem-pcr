@@ -72,6 +72,24 @@ export default function AdminDashboard() {
     logout();
   };
 
+  // Cross-tab Race Condition Fix
+  useEffect(() => {
+    if (selectedAspirations.length === 0) return;
+    const validIds = selectedAspirations.filter(id => {
+      const asp = aspirasi.find(a => a.id === id);
+      return asp && !asp.rilis_id;
+    });
+
+    if (validIds.length < selectedAspirations.length) {
+      setSelectedAspirations(validIds);
+      setToastType('error');
+      setToastMsg('Beberapa aspirasi yang kamu pilih sudah diproses admin lain.');
+      if (validIds.length === 0 && isConsolidating) {
+        setIsConsolidating(false);
+      }
+    }
+  }, [aspirasi, selectedAspirations, isConsolidating]);
+
   // Consolidation Handlers
   const toggleAspirationSelection = (id) => {
     setSelectedAspirations((prev) =>
@@ -81,6 +99,20 @@ export default function AdminDashboard() {
 
   const handleSaveRelease = (e) => {
     e.preventDefault();
+    
+    // Safety check cross-tab (Jaring pengaman terakhir)
+    const stillValid = selectedAspirations.every(id => {
+      const asp = aspirasi.find(a => a.id === id);
+      return asp && !asp.rilis_id;
+    });
+
+    if (!stillValid) {
+      setToastType('error');
+      setToastMsg('Gagal: Aspirasi yang dipilih sudah diproses admin lain.');
+      setIsConsolidating(false);
+      return;
+    }
+
     if (selectedAspirations.length === 0) {
       setToastType('error');
       setToastMsg('Pilih minimal satu aspirasi untuk dikonsolidasikan.');

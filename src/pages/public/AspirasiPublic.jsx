@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useMockDatabase } from '../../context/MockDatabaseContext';
 import { sanitizeImageEXIF } from '../../utils/exifSanitizer';
+import { validateEmail } from '../../utils/emailValidator';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
 import { MessageSquare, Upload, Search, CheckCircle2, ShieldAlert, EyeOff, X, Layers } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
@@ -124,8 +125,7 @@ export default function AspirasiPublic() {
 
     try {
       if (!isAnonim) {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!email.trim() || !emailRegex.test(email)) throw new Error('Email tidak valid (Gunakan format: nama@domain.com)');
+        if (!email.trim() || !validateEmail(email)) throw new Error('Gunakan email kampus (@mahasiswa.pcr.ac.id)');
         if (!nama.trim() || !nim.trim()) throw new Error('Nama dan NIM wajib diisi jika tidak anonim.');
       }
       if (!deskripsi.trim()) throw new Error('Deskripsi aspirasi harus diisi.');
@@ -297,6 +297,12 @@ export default function AspirasiPublic() {
                       <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
                         <ShieldAlert className="h-4 w-4 shrink-0" />
                         <span>Draf teks dimuat. Silakan unggah ulang foto bukti jika ada.</span>
+                      </div>
+                    )}
+                    {isAnonim && (
+                      <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
+                        <ShieldAlert className="h-4 w-4 shrink-0" />
+                        <span>Lampiran foto tetap disertakan. Pastikan tidak menampilkan wajah atau info pribadi lain.</span>
                       </div>
                     )}
                     <div className="relative flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-slate-50 hover:bg-slate-100 transition-colors p-4 cursor-pointer">
