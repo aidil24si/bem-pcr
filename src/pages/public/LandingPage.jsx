@@ -21,9 +21,9 @@ import {
 const BEM_CONFIG = {
   namaUniversitas: 'Politeknik Caltex Riau',
   namaFakultas: '',           // Kosongkan jika BEM Universitas (bukan Fakultas)
-  namaKabinet: 'Kabinet Presma Magang Bandung',
+  namaKabinet: 'AKSALAKSANA / ARTHASENA',
   periode: '2026/2027',
-  tagline: 'Walau Presma Magang, Kabinet Tidak Tumbang',
+  tagline: '-',
   deskripsi:
     'Badan Eksekutif Mahasiswa sebagai garda terdepan aspirasi dan pemberdayaan mahasiswa. Kami hadir untuk menghubungkan suara mahasiswa dengan kebijakan kampus.',
   visi:

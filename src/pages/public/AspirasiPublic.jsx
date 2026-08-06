@@ -133,7 +133,7 @@ export default function AspirasiPublic() {
       let finalBuktiUrl = null;
 
       // EXIF Sanitization
-      if (buktiFile && tipeIsu === 'tangible') {
+      if (buktiFile) {
         const { previewUrl: sanitizedUrl } = await sanitizeImageEXIF(buktiFile);
         finalBuktiUrl = sanitizedUrl;
       }
@@ -287,32 +287,30 @@ export default function AspirasiPublic() {
                   />
                 </div>
 
-                {/* File Upload (Tangible only) */}
-                {tipeIsu === 'tangible' && (
-                  <div className="space-y-3">
-                    <label className="text-sm font-bold text-[#004B5F] block">
-                      Unggah Bukti Foto (Wajib untuk Fasilitas)
-                    </label>
-                    {showDraftWarning && !buktiFile && (
-                      <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
-                        <ShieldAlert className="h-4 w-4 shrink-0" />
-                        <span>Draf teks dimuat. Silakan unggah ulang foto bukti jika ada.</span>
-                      </div>
-                    )}
-                    {isAnonim && (
-                      <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
-                        <ShieldAlert className="h-4 w-4 shrink-0" />
-                        <span>Lampiran foto tetap disertakan. Pastikan tidak menampilkan wajah atau info pribadi lain.</span>
-                      </div>
-                    )}
-                    <div className="relative flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-slate-50 hover:bg-slate-100 transition-colors p-4 cursor-pointer">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        required
-                        onChange={handleFileChange}
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                      />
+                {/* File Upload (Opsional untuk semua kategori) */}
+                <div className="space-y-3">
+                  <label className="text-sm font-bold text-[#004B5F] block">
+                    Unggah bukti pendukung (foto/tangkapan layar) — opsional
+                  </label>
+                  {showDraftWarning && !buktiFile && (
+                    <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 text-yellow-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
+                      <ShieldAlert className="h-4 w-4 shrink-0" />
+                      <span>Draf teks dimuat. Silakan unggah ulang foto bukti jika ada.</span>
+                    </div>
+                  )}
+                  {isAnonim && (
+                    <div className="flex items-center gap-2 p-2 bg-amber-50 border border-amber-200 text-amber-700 rounded-lg text-xs font-medium animate-in fade-in zoom-in-95 duration-200">
+                      <ShieldAlert className="h-4 w-4 shrink-0" />
+                      <span>Lampiran foto tetap disertakan. Pastikan tidak menampilkan wajah atau info pribadi lain.</span>
+                    </div>
+                  )}
+                  <div className="relative flex items-center justify-center rounded-lg border border-dashed border-gray-300 bg-slate-50 hover:bg-slate-100 transition-colors p-4 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
                       <div className="text-center space-y-1">
                         <Upload className="mx-auto h-6 w-6 text-slate-400" />
                         <p className="text-xs text-slate-500 font-medium">
@@ -334,7 +332,6 @@ export default function AspirasiPublic() {
                       </div>
                     )}
                   </div>
-                )}
 
                 {/* Alerts */}
                 {submitSuccess && (
