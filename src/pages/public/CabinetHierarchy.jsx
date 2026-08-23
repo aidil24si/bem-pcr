@@ -21,6 +21,14 @@ export default function CabinetHierarchy() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
+    const timer = setTimeout(() => {
+      const filtered = pengurus.filter(p => p.periode_tahun === selectedYear);
+      setPengurusList(filtered);
+      setLoading(false);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [selectedYear, pengurus]);
 
   const getPengurusByMinistryOrder = (order) => {
     const minIds = kementerianList.filter((k) => k.hierarki_order === order).map((k) => k.id);
