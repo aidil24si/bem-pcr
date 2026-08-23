@@ -167,17 +167,10 @@ export default function CabinetHierarchy() {
             <div className="w-0.5 h-8 bg-gray-300"></div>
           </div>
 
-          {/* HIERARCHY LEVEL 3: Rumpun Kementerian */}
-          <div className="space-y-12">
-            {RUMPUN_LIST.map((rumpun) => {
-              const ministries = getSektoralMinistriesByRumpun(rumpun.name);
-              if (ministries.length === 0) return null;
-
-              return (
-                <div key={rumpun.name} className="space-y-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {ministries.map((min) => {
-                      const staff = getPengurusForMinistry(min.id);
+          {/* HIERARCHY LEVEL 3: Kementerian Sektoral */}
+          <div className="columns-1 lg:columns-2 gap-8">
+            {kementerianList.filter(k => k.hierarki_order > 1).map((min) => {
+              const staff = getPengurusForMinistry(min.id);
                       
                       const sekmen = staff.filter(p => p.jabatan.toLowerCase().includes('sekretaris') || p.jabatan.toLowerCase().includes('sekmen'));
                       const pimpinan = staff.filter(p => 
@@ -193,7 +186,7 @@ export default function CabinetHierarchy() {
                       );
 
                       return (
-                        <Card key={min.id} className="border-gray-200 bg-slate-50 overflow-hidden shadow-sm">
+                        <Card key={min.id} className="border-gray-200 bg-slate-50 overflow-hidden shadow-sm break-inside-avoid mb-8">
                           <CardContent className="p-0">
                             {/* Header Kementerian */}
                             <div className="bg-white p-4 border-b border-gray-200 flex items-center justify-between">
@@ -230,10 +223,6 @@ export default function CabinetHierarchy() {
                           </CardContent>
                         </Card>
                       );
-                    })}
-                  </div>
-                </div>
-              );
             })}
           </div>
         </div>
