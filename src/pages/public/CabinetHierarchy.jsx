@@ -145,9 +145,6 @@ export default function CabinetHierarchy() {
         <div className="space-y-12">
           {/* HIERARCHY LEVEL 1: Presma & Wapresma */}
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="text-xs uppercase font-extrabold tracking-widest text-[#004B5F] bg-[#E6F3F7] border border-[#CCE7EF] px-3 py-1 rounded-full">
-              Top Level: Pimpinan Tertinggi
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-lg justify-center">
               {getPengurusByMinistryOrder(0).map(renderProfileCard)}
               {getPengurusByMinistryOrder(0).length === 0 && (
@@ -160,9 +157,6 @@ export default function CabinetHierarchy() {
 
           {/* HIERARCHY LEVEL 2: Admin Inti (Sekum/Bendum/Sekre) */}
           <div className="flex flex-col items-center text-center space-y-4">
-            <div className="text-xs uppercase font-extrabold tracking-widest text-blue-700 bg-blue-50 border border-blue-200 px-3 py-1 rounded-full">
-              Core Executive Layout
-            </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full max-w-4xl justify-center">
               {getPengurusByMinistryOrder(1).map(renderProfileCard)}
               {getPengurusByMinistryOrder(1).length === 0 && (
@@ -175,27 +169,12 @@ export default function CabinetHierarchy() {
 
           {/* HIERARCHY LEVEL 3: Rumpun Kementerian */}
           <div className="space-y-12">
-            <div className="text-center">
-              <div className="inline-block text-xs uppercase font-extrabold tracking-widest text-slate-500 bg-slate-100 border border-gray-200 px-3 py-1 rounded-full mb-3">
-                Kementerian Sektoral
-              </div>
-              <p className="text-xs text-slate-500">Diklasifikasikan berdasarkan rumpun kerja operasional</p>
-            </div>
-
             {RUMPUN_LIST.map((rumpun) => {
               const ministries = getSektoralMinistriesByRumpun(rumpun.name);
               if (ministries.length === 0) return null;
 
               return (
                 <div key={rumpun.name} className="space-y-6">
-                  <div className="flex items-center gap-3">
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                    <div className={`px-4 py-1.5 rounded-full border ${rumpun.bg} ${rumpun.border} ${rumpun.text} text-xs font-bold tracking-widest uppercase`}>
-                      Rumpun: {rumpun.name}
-                    </div>
-                    <div className="h-px bg-gray-200 flex-1"></div>
-                  </div>
-
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {ministries.map((min) => {
                       const staff = getPengurusForMinistry(min.id);
@@ -230,9 +209,6 @@ export default function CabinetHierarchy() {
                                   {/* Pimpinan Section */}
                                   {(pimpinan.length > 0 || sekmen.length > 0) && (
                                     <div className="space-y-3">
-                                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-gray-200 pb-1">
-                                        Manajerial
-                                      </div>
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {pimpinan.map(p => renderMiniProfile(p, false))}
                                         {sekmen.map(p => renderMiniProfile(p, true))}
@@ -243,9 +219,6 @@ export default function CabinetHierarchy() {
                                   {/* Anggota/Staf Section */}
                                   {anggota.length > 0 && (
                                     <div className="space-y-3 pt-2 border-t border-gray-200 border-dashed">
-                                      <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider border-b border-gray-200 pb-1 flex items-center gap-2">
-                                        <Users className="h-3 w-3" /> Staf / Anggota
-                                      </div>
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {anggota.map(p => renderMiniProfile(p, false))}
                                       </div>
