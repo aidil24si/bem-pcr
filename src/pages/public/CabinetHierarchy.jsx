@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useMockDatabase } from '../../context/MockDatabaseContext';
 import { Select, SelectItem } from '../../components/ui/Select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '../../components/ui/Dialog';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '../../components/ui/Tabs';
 import { Card, CardContent } from '../../components/ui/Card';
-import { Award, BookOpen, Briefcase, Calendar, User, Layers, Shield, Star, Users } from 'lucide-react';
+import { Calendar, User, Layers, Shield, Star, Users } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
 const PERIODS = ['2026/2027', '2025/2026', '2024/2025'];
@@ -22,26 +20,7 @@ export default function CabinetHierarchy() {
   const [pengurusList, setPengurusList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Profile Detail Modal State
-  const [selectedPengurus, setSelectedPengurus] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [modalTab, setModalTab] = useState('academic');
-
   useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => {
-      const filtered = pengurus.filter(p => p.periode_tahun === selectedYear);
-      setPengurusList(filtered);
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, [selectedYear, pengurus]);
-
-  const handleOpenDetail = (p) => {
-    setSelectedPengurus(p);
-    setModalTab('academic');
-    setModalOpen(true);
-  };
 
   const getPengurusByMinistryOrder = (order) => {
     const minIds = kementerianList.filter((k) => k.hierarki_order === order).map((k) => k.id);
@@ -59,11 +38,10 @@ export default function CabinetHierarchy() {
   const renderProfileCard = (p) => (
     <Card
       key={p.id}
-      onClick={() => handleOpenDetail(p)}
-      className="border-gray-200 bg-white hover:bg-slate-50 hover:border-[#004B5F]/50 hover:shadow-md transition-all cursor-pointer group text-center flex flex-col items-center p-5 space-y-3"
+      className="border-gray-200 bg-white text-center flex flex-col items-center p-5 space-y-3"
     >
       <div className="relative">
-        <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50 group-hover:border-[#004B5F] transition-colors">
+        <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50">
           {p.foto_url ? (
             <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
           ) : (
@@ -88,15 +66,14 @@ export default function CabinetHierarchy() {
   const renderMiniProfile = (p, isSekmen = false) => (
     <div
       key={p.id}
-      onClick={() => handleOpenDetail(p)}
-      className={`p-3 bg-white border ${isSekmen ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'} hover:border-[#004B5F]/50 rounded-lg text-center cursor-pointer transition-colors group relative shadow-sm hover:shadow`}
+      className={`p-3 bg-white border ${isSekmen ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'} rounded-lg text-center relative shadow-sm`}
     >
       {isSekmen && (
         <div className="absolute -top-2 -right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-md" title="Sekretaris Kementerian">
           <Star className="h-3 w-3" />
         </div>
       )}
-      <div className="h-12 w-12 rounded-full overflow-hidden mx-auto mb-2 border border-gray-200 bg-slate-50 group-hover:border-[#004B5F]">
+      <div className="h-12 w-12 rounded-full overflow-hidden mx-auto mb-2 border border-gray-200 bg-slate-50">
         {p.foto_url ? (
           <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
         ) : (
@@ -279,98 +256,6 @@ export default function CabinetHierarchy() {
             })}
           </div>
         </div>
-      )}
-
-      {/* Profile Detail Dialog */}
-      {selectedPengurus && (
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-[#004B5F]">
-              <User className="h-5 w-5 text-[#004B5F]" />
-              Profil Detail Pengurus
-            </DialogTitle>
-            <DialogDescription className="text-slate-500">
-              Informasi prestasi akademis, non-akademis, dan riwayat organisasi.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogContent className="space-y-6">
-            <div className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 border border-gray-200">
-              <div className="h-16 w-16 rounded-full overflow-hidden border border-gray-200 shrink-0 bg-white">
-                {selectedPengurus.foto_url ? (
-                  <img src={selectedPengurus.foto_url} alt={selectedPengurus.nama} className="h-full w-full object-cover" />
-                ) : (
-                  <div className="h-full w-full flex items-center justify-center">
-                    <User className="h-7 w-7 text-slate-300" />
-                  </div>
-                )}
-              </div>
-              <div>
-                <h3 className="font-bold text-[#004B5F] text-base">{selectedPengurus.nama}</h3>
-                <p className="text-xs text-slate-600 font-semibold">{selectedPengurus.jabatan}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">Kabinet Periode {selectedPengurus.periode_tahun}</p>
-              </div>
-            </div>
-
-            <Tabs value={modalTab} onValueChange={setModalTab}>
-              <TabsList className="grid grid-cols-3 w-full bg-slate-100 border border-gray-200">
-                <TabsTrigger value="academic" className="text-xs data-[state=active]:bg-white data-[state=active]:text-[#004B5F]">Akademik</TabsTrigger>
-                <TabsTrigger value="non-academic" className="text-xs data-[state=active]:bg-white data-[state=active]:text-[#004B5F]">Non-Akademik</TabsTrigger>
-                <TabsTrigger value="organizations" className="text-xs data-[state=active]:bg-white data-[state=active]:text-[#004B5F]">Organisasi</TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="academic" className="space-y-3 pt-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#004B5F] flex items-center gap-1.5">
-                  <BookOpen className="h-4 w-4 text-[#004B5F]" /> Prestasi Akademik
-                </h4>
-                {selectedPengurus.prestasi_akademik && selectedPengurus.prestasi_akademik.length > 0 ? (
-                  <ul className="space-y-2">
-                    {selectedPengurus.prestasi_akademik.map((item, idx) => (
-                      <li key={idx} className="text-xs text-slate-600 bg-white p-2.5 rounded border border-gray-200 flex items-start gap-2 shadow-sm">
-                        <Award className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" /> <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">Belum ada rekam jejak yang diinput.</p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="non-academic" className="space-y-3 pt-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#004B5F] flex items-center gap-1.5">
-                  <Award className="h-4 w-4 text-[#004B5F]" /> Prestasi Non-Akademik
-                </h4>
-                {selectedPengurus.prestasi_non_akademik && selectedPengurus.prestasi_non_akademik.length > 0 ? (
-                  <ul className="space-y-2">
-                    {selectedPengurus.prestasi_non_akademik.map((item, idx) => (
-                      <li key={idx} className="text-xs text-slate-600 bg-white p-2.5 rounded border border-gray-200 flex items-start gap-2 shadow-sm">
-                        <Award className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" /> <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">Belum ada rekam jejak yang diinput.</p>
-                )}
-              </TabsContent>
-
-              <TabsContent value="organizations" className="space-y-3 pt-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-[#004B5F] flex items-center gap-1.5">
-                  <Briefcase className="h-4 w-4 text-[#004B5F]" /> Riwayat Organisasi
-                </h4>
-                {selectedPengurus.riwayat_organisasi && selectedPengurus.riwayat_organisasi.length > 0 ? (
-                  <ul className="space-y-2">
-                    {selectedPengurus.riwayat_organisasi.map((item, idx) => (
-                      <li key={idx} className="text-xs text-slate-600 bg-white p-2.5 rounded border border-gray-200 flex items-start gap-2 shadow-sm">
-                        <span className="h-2 w-2 rounded-full bg-[#004B5F] shrink-0 mt-1.5"></span> <span>{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-xs text-slate-500 italic">Belum ada rekam jejak yang diinput.</p>
-                )}
-              </TabsContent>
-            </Tabs>
-          </DialogContent>
-        </Dialog>
       )}
     </div>
   );
