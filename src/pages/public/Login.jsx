@@ -70,7 +70,7 @@ export default function Login() {
             <div className="mx-auto h-14 w-14 rounded-full bg-[#E6F3F7] border border-[#CCE7EF] flex items-center justify-center mb-2">
               <Lock className="h-7 w-7 text-[#004B5F]" />
             </div>
-            <CardTitle className="text-2xl text-[#004B5F] font-extrabold">Verifikasi Sesi</CardTitle>
+            <CardTitle className="text-2xl text-[#004B5F] font-extrabold">Login Admin BEM</CardTitle>
             <CardDescription className="text-slate-500 text-xs">
               Masukkan surel dan kata sandi kementerian Anda.
             </CardDescription>

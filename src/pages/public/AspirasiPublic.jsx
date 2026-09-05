@@ -199,7 +199,7 @@ export default function AspirasiPublic() {
                           : 'border-gray-200 bg-slate-50 text-slate-500 hover:text-[#004B5F]'
                       }`}
                     >
-                      Fasilitas (Tangible)
+                      Fasilitas
                     </button>
                     <button
                       type="button"
@@ -210,7 +210,7 @@ export default function AspirasiPublic() {
                           : 'border-gray-200 bg-slate-50 text-slate-500 hover:text-[#004B5F]'
                       }`}
                     >
-                      Birokrasi (Intangible)
+                      Birokrasi
                     </button>
                   </div>
                 </div>
@@ -316,7 +316,7 @@ export default function AspirasiPublic() {
                         <p className="text-xs text-slate-500 font-medium">
                           {buktiFile ? buktiFile.name : 'Pilih file gambar bukti (Maks 2MB)'}
                         </p>
-                        <p className="text-[10px] text-[#EE152A] font-bold">Metadata lokasi (EXIF) akan dihapus otomatis!</p>
+                        <p className="text-[10px] text-[#EE152A] font-bold">Informasi lokasi foto akan dihapus otomatis demi privasi!</p>
                       </div>
                     </div>
                     {previewUrl && (
@@ -352,7 +352,7 @@ export default function AspirasiPublic() {
                   disabled={loading}
                   className="w-full py-3 px-4 rounded-xl bg-[#004B5F] hover:bg-[#003847] text-white font-bold shadow-lg shadow-[#004B5F]/20 hover:shadow-[#004B5F]/30 transition-all text-sm disabled:opacity-50 flex justify-center items-center gap-2 cursor-pointer"
                 >
-                  {loading ? 'Memproses Sanitasi Gambar...' : 'Kirim Aspirasi Ke BEM'}
+                  {loading ? 'Menyiapkan Foto...' : 'Kirim Aspirasi Ke BEM'}
                 </button>
               </form>
             </CardContent>
@@ -438,7 +438,7 @@ export default function AspirasiPublic() {
                           {linkedAsps.length > 0 && (
                             <div className="pt-4 border-t border-gray-200 space-y-3">
                               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                Aspirasi Terkonsolidasi ({linkedAsps.length}):
+                                Telah Direspon ({linkedAsps.length}):
                               </p>
                               <div className="space-y-3">
                                 {linkedAsps.map((asp) => (

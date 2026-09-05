@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useMockDatabase } from '../../context/MockDatabaseContext';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../../components/ui/Card';
-import { LogOut, Check, X, Shield, Users, User, MessageSquare, Layers, Menu, Trash2, Edit3, History, Archive } from 'lucide-react';
+import { LogOut, Check, X, Shield, Users, User, MessageSquare, Layers, Menu, Trash2, Edit3, History, Archive, Upload } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
 import Toast from '../../components/ui/Toast';
+import { sanitizeImageEXIF } from '../../utils/exifSanitizer';
 
 export default function AdminDashboard() {
   useDocumentTitle('Dasbor Admin');
@@ -57,6 +58,8 @@ export default function AdminDashboard() {
   const [formNonAkademik, setFormNonAkademik] = useState('');
   const [formOrganisasi, setFormOrganisasi] = useState('');
   const [formFotoUrl, setFormFotoUrl] = useState('');
+  const [formFotoFile, setFormFotoFile] = useState(null);
+  const [isCompressingPengurus, setIsCompressingPengurus] = useState(false);
   const [formPeriode, setFormPeriode] = useState('2026/2027');
   const [actionSuccess, setActionSuccess] = useState('');
   const [actionError, setActionError] = useState('');
@@ -189,10 +192,24 @@ export default function AdminDashboard() {
   };
 
   // Pengurus Handlers
-  const handleSavePengurus = (e) => {
+  const handleFotoFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 2 * 1024 * 1024) {
+        setActionError('Ukuran foto maksimal adalah 2MB.');
+        return;
+      }
+      setFormFotoFile(file);
+      setFormFotoUrl(URL.createObjectURL(file));
+      setActionError('');
+    }
+  };
+
+  const handleSavePengurus = async (e) => {
     e.preventDefault();
     setActionError('');
     setActionSuccess('');
+    setIsCompressingPengurus(true);
 
     try {
       const trimmedNama = formNama.trim();
@@ -206,6 +223,12 @@ export default function AdminDashboard() {
       const prestasiNonAkademik = formNonAkademik.split('\n').map(s => s.trim()).filter(Boolean);
       const riwayatOrganisasi = formOrganisasi.split('\n').map(s => s.trim()).filter(Boolean);
 
+      let finalFotoUrl = formFotoUrl.trim() !== '' ? formFotoUrl.trim() : null;
+      if (formFotoFile) {
+        const { previewUrl: sanitizedUrl } = await sanitizeImageEXIF(formFotoFile);
+        finalFotoUrl = sanitizedUrl;
+      }
+
       const payload = {
         nama: trimmedNama,
         jabatan: trimmedJabatan,
@@ -213,7 +236,7 @@ export default function AdminDashboard() {
         prestasi_akademik: prestasiAkademik,
         prestasi_non_akademik: prestasiNonAkademik,
         riwayat_organisasi: riwayatOrganisasi,
-        foto_url: formFotoUrl.trim() !== '' ? formFotoUrl.trim() : null,
+        foto_url: finalFotoUrl,
         periode_tahun: formPeriode,
       };
 
@@ -228,6 +251,8 @@ export default function AdminDashboard() {
       resetPengurusForm();
     } catch (err) {
       setActionError(err.message || 'Gagal menyimpan data pengurus.');
+    } finally {
+      setIsCompressingPengurus(false);
     }
   };
 
@@ -240,6 +265,7 @@ export default function AdminDashboard() {
     setFormNonAkademik('');
     setFormOrganisasi('');
     setFormFotoUrl('');
+    setFormFotoFile(null);
     setFormPeriode('2026/2027');
     setActionSuccess('');
     setActionError('');
@@ -254,6 +280,7 @@ export default function AdminDashboard() {
     setFormNonAkademik((p.prestasi_non_akademik || []).join('\n'));
     setFormOrganisasi((p.riwayat_organisasi || []).join('\n'));
     setFormFotoUrl(p.foto_url || '');
+    setFormFotoFile(null);
     setFormPeriode(p.periode_tahun);
     setActionSuccess('');
     setActionError('');
@@ -325,7 +352,7 @@ export default function AdminDashboard() {
           </div>
           <div className="flex flex-col gap-2">
             <button onClick={() => { setActiveTab('moderation'); setSidebarOpen(false); }} className={`w-full py-3 px-4 rounded-xl text-left text-xs font-bold flex items-center gap-3 cursor-pointer transition-all ${activeTab === 'moderation' ? 'bg-[#004B5F] text-white shadow-md' : 'text-slate-600 hover:text-[#004B5F] hover:bg-slate-50'}`}>
-              <MessageSquare className="h-4 w-4" /> Konsolidasi Aspirasi
+              <MessageSquare className="h-4 w-4" /> Kelola Aspirasi
               {pendingAspirations.length > 0 && <span className="ml-auto bg-[#EE152A] text-white text-[10px] px-2 py-0.5 rounded-full">{pendingAspirations.length}</span>}
             </button>
             <button onClick={() => { setActiveTab('pengurus'); resetPengurusForm(); setSidebarOpen(false); }} className={`w-full py-3 px-4 rounded-xl text-left text-xs font-bold flex items-center gap-3 cursor-pointer transition-all ${activeTab === 'pengurus' ? 'bg-[#004B5F] text-white shadow-md' : 'text-slate-600 hover:text-[#004B5F] hover:bg-slate-50'}`}>
@@ -359,7 +386,7 @@ export default function AdminDashboard() {
           
           <div className="flex flex-col gap-2 p-3 rounded-2xl bg-white border border-gray-200 shadow-sm">
             <button onClick={() => setActiveTab('moderation')} className={`w-full py-3 px-4 rounded-xl text-left text-xs font-bold flex items-center gap-3 cursor-pointer transition-all ${activeTab === 'moderation' ? 'bg-[#004B5F] text-white shadow-md' : 'text-slate-600 hover:text-[#004B5F] hover:bg-slate-50'}`}>
-              <MessageSquare className="h-4 w-4" /> <span>Konsolidasi Aspirasi</span>
+              <MessageSquare className="h-4 w-4" /> <span>Kelola Aspirasi</span>
               {pendingAspirations.length > 0 && <span className="ml-auto bg-[#EE152A] text-white text-[10px] px-2 py-0.5 rounded-full">{pendingAspirations.length}</span>}
             </button>
             <button onClick={() => { setActiveTab('pengurus'); resetPengurusForm(); }} className={`w-full py-3 px-4 rounded-xl text-left text-xs font-bold flex items-center gap-3 cursor-pointer transition-all ${activeTab === 'pengurus' ? 'bg-[#004B5F] text-white shadow-md' : 'text-slate-600 hover:text-[#004B5F] hover:bg-slate-50'}`}>
@@ -381,7 +408,7 @@ export default function AdminDashboard() {
           {/* STATS ROW */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col gap-2">
-              <p className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Aspirasi Pending</p>
+              <p className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Aspirasi Menunggu</p>
               <div className="flex items-center justify-between">
                 <span className="text-3xl font-extrabold text-[#004B5F]">{pendingAspirations.length}</span>
                 <div className="p-2 bg-purple-50 rounded-lg text-purple-600"><MessageSquare className="h-5 w-5" /></div>
@@ -453,7 +480,7 @@ export default function AdminDashboard() {
                             <CardHeader className="pb-4 border-b border-gray-100 flex flex-row justify-between gap-4">
                               <div className="space-y-2">
                                 <span className="text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full border bg-slate-100 text-slate-600 border-gray-200 tracking-wider">
-                                  {a.tipe_isu}
+                                  {a.tipe_isu === 'tangible' ? 'Fasilitas' : a.tipe_isu === 'intangible' ? 'Birokrasi' : a.tipe_isu}
                                 </span>
                                 <CardTitle className="text-sm text-[#004B5F] pt-1">
                                   Dari: {a.identitas ? <span className="font-bold">{a.identitas.nama} ({a.identitas.nim})</span> : <span className="italic text-slate-400">Anonim</span>}
@@ -511,7 +538,7 @@ export default function AdminDashboard() {
                                 {rilis && (
                                   <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                                     <button onClick={() => openEditRilisModal(rilis)} className="p-1.5 rounded bg-white text-[#004B5F] hover:bg-slate-100 border border-[#CCE7EF] transition-colors shadow-sm" title="Edit Rilis"><Edit3 className="h-3.5 w-3.5" /></button>
-                                    <button onClick={() => setConfirmUnconsolidate(rilis)} className="p-1.5 rounded bg-white text-[#EE152A] hover:bg-red-50 border border-red-200 transition-colors shadow-sm" title="Batalkan (Unconsolidate)"><X className="h-3.5 w-3.5" /></button>
+                                    <button onClick={() => setConfirmUnconsolidate(rilis)} className="p-1.5 rounded bg-white text-[#EE152A] hover:bg-red-50 border border-red-200 transition-colors shadow-sm" title="Batalkan Rilis"><X className="h-3.5 w-3.5" /></button>
                                   </div>
                                 )}
                               </div>
@@ -640,13 +667,33 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        <div className="col-span-2 sm:col-span-1">
                           <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Periode</label>
                           <input type="text" required value={formPeriode} onChange={e => setFormPeriode(e.target.value)} className="w-full mt-1.5 bg-white border border-gray-300 px-3 py-2.5 text-sm text-slate-700 rounded-lg focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none shadow-sm" />
                         </div>
-                        <div>
-                          <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">Foto URL (Opsional)</label>
-                          <input type="text" value={formFotoUrl} onChange={e => setFormFotoUrl(e.target.value)} className="w-full mt-1.5 bg-white border border-gray-300 px-3 py-2.5 text-sm text-slate-700 rounded-lg focus:border-[#004B5F] focus:ring-1 focus:ring-[#004B5F] outline-none shadow-sm" placeholder="https://..." />
+                      </div>
+                      <div className="bg-slate-50 border border-gray-200 p-4 rounded-xl shadow-sm mt-4">
+                        <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider mb-3 block">Foto Profil (Opsional)</label>
+                        <div className="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+                          <div className="h-20 w-20 shrink-0 rounded-full bg-white border-2 border-dashed border-gray-300 flex items-center justify-center overflow-hidden">
+                            {formFotoUrl ? <img src={formFotoUrl} className="h-full w-full object-cover" alt="Preview"/> : <User className="h-8 w-8 text-slate-300" />}
+                          </div>
+                          <div className="flex-1 space-y-3 w-full">
+                            <label className="flex items-center justify-center sm:justify-start gap-2 py-2 px-4 bg-white border border-gray-300 hover:bg-slate-50 text-xs font-bold text-slate-600 rounded-lg cursor-pointer transition-colors w-full sm:w-auto shadow-sm">
+                              <Upload className="h-4 w-4" /> <span>Upload Foto (Maks 2MB)</span>
+                              <input type="file" accept="image/*" onChange={handleFotoFileChange} className="hidden" />
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-bold text-slate-400">ATAU</span>
+                              <input 
+                                type="text" 
+                                value={formFotoFile || formFotoUrl.startsWith('data:image/') ? '' : formFotoUrl} 
+                                onChange={e => { setFormFotoFile(null); setFormFotoUrl(e.target.value); }} 
+                                className="flex-1 min-w-0 bg-white border border-gray-300 px-3 py-2 text-xs text-slate-700 rounded-lg focus:border-[#004B5F] outline-none shadow-sm" 
+                                placeholder={formFotoFile ? "(File foto dipilih)" : (formFotoUrl.startsWith('data:image/') ? "(Foto tersimpan via upload)" : "Tempel URL gambar langsung...")} 
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div>
@@ -666,8 +713,8 @@ export default function AdminDashboard() {
                       {actionSuccess && <p className="text-xs text-emerald-700 bg-emerald-50 p-3 border border-emerald-200 rounded-lg font-medium">{actionSuccess}</p>}
                       
                       <div className="flex gap-3 pt-4 border-t border-gray-100">
-                        <button type="submit" className="flex-1 py-3 bg-[#004B5F] hover:bg-[#003847] text-white font-bold rounded-xl text-sm cursor-pointer shadow-lg shadow-[#004B5F]/20 transition-all hover:-translate-y-0.5">
-                          {editingPengurus ? 'Simpan Perubahan' : 'Daftarkan Anggota'}
+                        <button type="submit" disabled={isCompressingPengurus} className="flex-1 py-3 bg-[#004B5F] hover:bg-[#003847] disabled:opacity-50 text-white font-bold rounded-xl text-sm cursor-pointer shadow-lg shadow-[#004B5F]/20 transition-all hover:-translate-y-0.5">
+                          {isCompressingPengurus ? 'Memproses Foto...' : (editingPengurus ? 'Simpan Perubahan' : 'Daftarkan Anggota')}
                         </button>
                         {editingPengurus && (
                           <button type="button" onClick={resetPengurusForm} className="py-3 px-5 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-sm font-bold cursor-pointer transition-colors">
