@@ -22,8 +22,8 @@ export function Dialog({ open, onOpenChange, children }) {
         className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
         onClick={() => onOpenChange(false)}
       />
-      {/* Content Container */}
-      <div className="z-50 w-full max-w-lg transform overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-2xl transition-all duration-300 animate-in fade-in zoom-in-95">
+      {/* Content Container (WRAPPER MODAL) */}
+      <div className="z-50 w-full max-w-lg max-h-[85vh] flex flex-col relative transform overflow-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-2xl transition-all duration-300 animate-in fade-in zoom-in-95">
         <button
           onClick={() => onOpenChange(false)}
           className="absolute right-4 top-4 rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900 transition-colors focus:outline-none focus:ring-2 focus:ring-[#004B5F]"
@@ -31,7 +31,9 @@ export function Dialog({ open, onOpenChange, children }) {
           <X className="h-5 w-5" />
           <span className="sr-only">Close</span>
         </button>
-        {children}
+        <div className="overflow-y-auto flex-1 min-h-0 pr-1">
+          {children}
+        </div>
       </div>
     </div>
   );
