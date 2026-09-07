@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useMockDatabase } from '../../context/MockDatabaseContext';
 import { Select, SelectItem } from '../../components/ui/Select';
 import { Card, CardContent } from '../../components/ui/Card';
+import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
 import { Calendar, User, Layers, Shield, Star, Users } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
@@ -18,6 +19,7 @@ export default function CabinetHierarchy() {
   const [selectedYear, setSelectedYear] = useState('2026/2027');
   const { kementerian: kementerianList, pengurus } = useMockDatabase();
   const [pengurusList, setPengurusList] = useState([]);
+  const [selectedPengurus, setSelectedPengurus] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,7 +48,8 @@ export default function CabinetHierarchy() {
   const renderProfileCard = (p) => (
     <Card
       key={p.id}
-      className="border-gray-200 bg-white text-center flex flex-col items-center p-5 space-y-3"
+      onClick={() => setSelectedPengurus(p)}
+      className="border-gray-200 bg-white text-center flex flex-col items-center p-5 space-y-3 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg group"
     >
       <div className="relative">
         <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50">
@@ -74,7 +77,8 @@ export default function CabinetHierarchy() {
   const renderMiniProfile = (p, isSekmen = false) => (
     <div
       key={p.id}
-      className={`p-3 bg-white border ${isSekmen ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'} rounded-lg text-center relative shadow-sm`}
+      onClick={() => setSelectedPengurus(p)}
+      className={`p-3 bg-white border ${isSekmen ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'} rounded-lg text-center relative shadow-sm cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md group`}
     >
       {isSekmen && (
         <div className="absolute -top-2 -right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-md" title="Sekretaris Kementerian">
@@ -227,6 +231,80 @@ export default function CabinetHierarchy() {
           </div>
         </div>
       )}
+
+      {/* MODAL DETAIL PENGURUS */}
+      <Dialog open={!!selectedPengurus} onOpenChange={(open) => !open && setSelectedPengurus(null)}>
+        <DialogContent className="border-gray-200 bg-white sm:max-w-xl">
+          {selectedPengurus && (
+            <div className="space-y-6">
+              {/* Header: Foto, Nama, Jabatan */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-5">
+                <div className="h-28 w-28 shrink-0 rounded-full overflow-hidden border-4 border-gray-100 bg-slate-50 shadow-sm relative">
+                  {selectedPengurus.foto_url ? (
+                    <img src={selectedPengurus.foto_url} alt={selectedPengurus.nama} className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="h-full w-full flex items-center justify-center">
+                      <User className="h-12 w-12 text-slate-300" />
+                    </div>
+                  )}
+                </div>
+                <div className="text-center sm:text-left flex-1 mt-2 sm:mt-0">
+                  <DialogTitle className="text-2xl font-extrabold text-[#004B5F] mb-1">{selectedPengurus.nama}</DialogTitle>
+                  <DialogDescription className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-2">{selectedPengurus.jabatan}</DialogDescription>
+                  <div className="inline-block px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-lg border border-gray-200">
+                    Periode {selectedPengurus.periode_tahun}
+                  </div>
+                </div>
+              </div>
+
+              {/* Detail Lists */}
+              <div className="space-y-5 pt-2">
+                {/* Prestasi Akademik */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-extrabold text-[#004B5F] uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <Star className="h-3.5 w-3.5" /> Prestasi Akademik
+                  </h4>
+                  {(!selectedPengurus.prestasi_akademik || selectedPengurus.prestasi_akademik.length === 0) ? (
+                    <p className="text-sm text-slate-400 italic">Belum ada data.</p>
+                  ) : (
+                    <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                      {selectedPengurus.prestasi_akademik.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Prestasi Non-Akademik */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-extrabold text-[#004B5F] uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <Star className="h-3.5 w-3.5" /> Prestasi Non-Akademik
+                  </h4>
+                  {(!selectedPengurus.prestasi_non_akademik || selectedPengurus.prestasi_non_akademik.length === 0) ? (
+                    <p className="text-sm text-slate-400 italic">Belum ada data.</p>
+                  ) : (
+                    <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                      {selectedPengurus.prestasi_non_akademik.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  )}
+                </div>
+
+                {/* Riwayat Organisasi */}
+                <div className="space-y-2">
+                  <h4 className="text-xs font-extrabold text-[#004B5F] uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100">
+                    <Users className="h-3.5 w-3.5" /> Riwayat Organisasi
+                  </h4>
+                  {(!selectedPengurus.riwayat_organisasi || selectedPengurus.riwayat_organisasi.length === 0) ? (
+                    <p className="text-sm text-slate-400 italic">Belum ada data.</p>
+                  ) : (
+                    <ul className="list-disc list-inside space-y-1 text-sm text-slate-600">
+                      {selectedPengurus.riwayat_organisasi.map((item, i) => <li key={i}>{item}</li>)}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
