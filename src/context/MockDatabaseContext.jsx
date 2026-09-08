@@ -171,17 +171,6 @@ export const MockDatabaseProvider = ({ children }) => {
     localStorage.removeItem('mvp_profiles');
   }, []);
 
-  // Pastikan record dummy "p_test" selalu masuk meskipun localStorage mem-bypass INITIAL_PENGURUS
-  useEffect(() => {
-    setPengurus(prev => {
-      if (!prev.some(p => p.id === 'p_test')) {
-        const testData = INITIAL_PENGURUS.find(p => p.id === 'p_test');
-        if (testData) return [...prev, testData];
-      }
-      return prev;
-    });
-  }, []);
-
   // Cross-tab synchronization
   useEffect(() => {
     const handleStorageChange = (e) => {
