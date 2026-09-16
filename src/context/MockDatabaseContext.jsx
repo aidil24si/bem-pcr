@@ -120,7 +120,7 @@ const INITIAL_ASPIRASI = [
     bukti_url: null,
     rilis_id: null,
     created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
+  }
 ];
 
 const INITIAL_PROFILES = [
