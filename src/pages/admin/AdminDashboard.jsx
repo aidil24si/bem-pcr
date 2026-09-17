@@ -652,11 +652,10 @@ export default function AdminDashboard() {
 
               {/* MODAL DETAIL ASPIRASI */}
               <Dialog open={!!viewAspirasi} onOpenChange={(open) => !open && setViewAspirasi(null)}>
-                <DialogContent className="border-gray-200 bg-white sm:max-w-2xl max-h-[85vh] flex flex-col relative">
+                <DialogContent className="border-gray-200 bg-white">
                   {viewAspirasi && (
-                    <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-1">
-                      <div className="space-y-6">
-                        <DialogHeader>
+                    <div className="space-y-6">
+                      <DialogHeader>
                           <DialogTitle className="text-2xl font-extrabold text-[#004B5F]">Detail Aspirasi</DialogTitle>
                           <DialogDescription className="text-slate-500 flex flex-wrap items-center gap-2 mt-2">
                             <span className="px-2.5 py-1 bg-slate-100 text-slate-600 rounded-md text-[10px] font-bold uppercase tracking-wider">
@@ -711,7 +710,6 @@ export default function AdminDashboard() {
                             </div>
                           </div>
                         )}
-                      </div>
                     </div>
                   )}
                 </DialogContent>
