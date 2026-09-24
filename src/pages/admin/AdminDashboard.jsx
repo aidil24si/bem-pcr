@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../..
 import { LogOut, Check, X, Shield, Users, User, MessageSquare, Layers, Menu, Trash2, Edit3, History, Archive, Upload } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
+import { ImageLightbox } from '../../components/ui/ImageLightbox';
 import Toast from '../../components/ui/Toast';
 import { sanitizeImageEXIF } from '../../utils/exifSanitizer';
 
@@ -34,6 +35,7 @@ export default function AdminDashboard() {
   const [confirmUnconsolidate, setConfirmUnconsolidate] = useState(null);
   const [editingRilis, setEditingRilis] = useState(null);
   const [viewAspirasi, setViewAspirasi] = useState(null);
+  const [lightboxSrc, setLightboxSrc] = useState(null);
   const [editRilisTitle, setEditRilisTitle] = useState('');
   const [editRilisCategory, setEditRilisCategory] = useState('');
   const [editRilisDiscussion, setEditRilisDiscussion] = useState('');
@@ -704,9 +706,20 @@ export default function AdminDashboard() {
 
                         {viewAspirasi.bukti_url && (
                           <div>
-                            <label className="text-[10px] font-bold text-[#004B5F] uppercase tracking-wider flex items-center gap-2 mb-2">Foto Bukti</label>
-                            <div className="rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-slate-100 flex items-center justify-center p-2">
-                              <img src={viewAspirasi.bukti_url} alt="Bukti Aspirasi" className="w-full h-auto object-contain rounded-lg max-h-[500px]" />
+                            <div className="flex items-center justify-between mb-2">
+                              <label className="text-[10px] font-bold text-[#004B5F] uppercase tracking-wider flex items-center gap-2">Foto Bukti</label>
+                              <span className="text-[11px] text-slate-400">Klik foto untuk memperbesar</span>
+                            </div>
+                            <div
+                              onClick={() => setLightboxSrc(viewAspirasi.bukti_url)}
+                              className="group cursor-pointer rounded-xl overflow-hidden border border-gray-200 shadow-sm bg-slate-100 flex items-center justify-center p-2 transition-all hover:border-[#004B5F]/50 hover:shadow-md"
+                              title="Klik untuk memperbesar foto"
+                            >
+                              <img
+                                src={viewAspirasi.bukti_url}
+                                alt="Bukti Aspirasi"
+                                className="w-full h-auto object-contain rounded-lg max-h-[500px] transition-transform duration-200 group-hover:scale-[1.01]"
+                              />
                             </div>
                           </div>
                         )}
@@ -714,6 +727,13 @@ export default function AdminDashboard() {
                   )}
                 </DialogContent>
               </Dialog>
+
+              {/* LIGHTBOX FOTO BUKTI */}
+              <ImageLightbox
+                src={lightboxSrc}
+                alt={viewAspirasi?.deskripsi || 'Foto Bukti Aspirasi'}
+                onClose={() => setLightboxSrc(null)}
+              />
             </div>
           )}
 
