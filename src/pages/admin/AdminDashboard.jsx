@@ -420,7 +420,7 @@ export default function AdminDashboard() {
             <div className="p-5 rounded-2xl border border-gray-200 bg-white shadow-sm flex flex-col gap-2">
               <p className="text-[10px] uppercase font-extrabold text-slate-400 tracking-wider">Kementerian</p>
               <div className="flex items-center justify-between">
-                <span className="text-3xl font-extrabold text-[#004B5F]">{kementerian.length}</span>
+                <span className="text-3xl font-extrabold text-[#004B5F]">{kementerian.filter(k => k.hierarki_order > 1).length}</span>
                 <div className="p-2 bg-blue-50 rounded-lg text-blue-600"><Layers className="h-5 w-5" /></div>
               </div>
             </div>

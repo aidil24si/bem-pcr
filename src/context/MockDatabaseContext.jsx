@@ -5,7 +5,6 @@ const MockDatabaseContext = createContext(null);
 // Initial Seed Data
 const INITIAL_KEMENTERIAN = [
   { id: 'k-presma', nama_kementerian: 'Presiden & Wakil Presiden Mahasiswa', hierarki_order: 0, rumpun: 'Inti' },
-  { id: 'k-proto', nama_kementerian: 'Protokoler', hierarki_order: 1, rumpun: 'Inti' },
   { id: 'k-sekum-1', nama_kementerian: 'Sekretaris Umum 1', hierarki_order: 1, rumpun: 'Inti' },
   { id: 'k-sekum-2', nama_kementerian: 'Sekretaris Umum 2', hierarki_order: 1, rumpun: 'Inti' },
   { id: 'k-bendum-1', nama_kementerian: 'Bendahara Umum 1', hierarki_order: 1, rumpun: 'Inti' },

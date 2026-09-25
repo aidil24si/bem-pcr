@@ -156,7 +156,7 @@ export default function LandingPage() {
 
     setPimpinan(pimpinanList.slice(0, 2)); // Presma & Wapresma
     setStats({
-      kementerian: kementerian.length,
+      kementerian: kementerian.filter((k) => k.hierarki_order > 1).length,
       pengurus: pengurus.filter((p) => p.periode_tahun === BEM_CONFIG.periode).length,
       aspirasi: aspirasi.length,
       rilis: rilisAdvokasi.filter((r) => r.status === 'diterbitkan').length,
