@@ -7,6 +7,50 @@ import PageHeader from '../../components/ui/PageHeader';
 
 const KABINET_PERIODS = [
   {
+    periode: '2026/2027',
+    namaKabinet: 'Kabinet Aksalaksana',
+    tagline: 'Garda Advokasi Progresif & Inklusif',
+    deskripsiKabinet: 'Kabinet Aksalaksana berkomitmen mewujudkan BEM PCR sebagai garda advokasi yang progresif dan inklusif, serta menjadi penggerak organisasi yang substantif, solutif, dan berdampak nyata bagi seluruh mahasiswa.',
+    visi: 'Mewujudkan BEM PCR sebagai Garda Advokasi yang Progresif dan Inklusif, serta Menjadi Penggerak Organisasi yang Substantif, Solutif, dan Berdampak Nyata bagi Mahasiswa.',
+    misi: [
+      {
+        title: 'Advokasi Responsif & Transparan',
+        desc: 'Mereformasi Sistem Advokasi yang Responsif dan Transparan.'
+      },
+      {
+        title: 'Program Kerja Berbasis Kebutuhan',
+        desc: 'Optimalisasi dan Transformasi Program Kerja Berbasis Kebutuhan (Impact-Oriented).'
+      },
+      {
+        title: 'Pengembangan Kapasitas & Nilai SDM',
+        desc: 'Meningkatkan Kapasitas dan Penanaman Nilai (Value) SDM BEM.'
+      }
+    ],
+    tujuan: [
+      'Menjamin transparansi dan akuntabilitas dalam seluruh kanal advokasi mahasiswa.',
+      'Mengoptimalkan program kerja solutif yang berakar dari aspirasi nyata mahasiswa.',
+      'Meningkatkan kapasitas kepemimpinan dan penanaman integritas pengurus BEM.'
+    ],
+    logoFilosofi: [
+      {
+        simbol: 'Pena & Timbangan',
+        arti: 'Melambangkan keadilan, intelektualitas, dan fungsi garda advokasi yang berimbang.'
+      },
+      {
+        simbol: 'Tangan Bersatu',
+        arti: 'Melambangkan persatuan dan gerakan inklusif yang merangkul seluruh elemen mahasiswa.'
+      },
+      {
+        simbol: 'Panah Progresif',
+        arti: 'Melambangkan langkah nyata, keberanian berinovasi, dan transformasi berkelanjutan.'
+      },
+      {
+        simbol: 'Warna Biru & Merah',
+        arti: 'Warna biru melambangkan kedalaman integritas; warna merah melambangkan energi advokasi yang berani dan solutif.'
+      }
+    ]
+  },
+  {
     periode: '2025/2026',
     namaKabinet: 'Kabinet Nusantara Maju',
     tagline: 'Bersama Bergerak, Bersatu Membangun',
@@ -94,7 +138,7 @@ const KABINET_PERIODS = [
 export default function ProfilBEM() {
   useDocumentTitle('Profil BEM');
   const [cabinetPeriods, setCabinetPeriods] = useState(KABINET_PERIODS);
-  const [selectedPeriod, setSelectedPeriod] = useState('2025/2026');
+  const [selectedPeriod, setSelectedPeriod] = useState('2026/2027');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {

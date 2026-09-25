@@ -21,18 +21,17 @@ import {
 const BEM_CONFIG = {
   namaUniversitas: 'Politeknik Caltex Riau',
   namaFakultas: '',           // Kosongkan jika BEM Universitas (bukan Fakultas)
-  namaKabinet: 'AKSALAKSANA / ARTHASENA',
+  namaKabinet: 'Aksalaksana',
   periode: '2026/2027',
-  tagline: '-',
+  tagline: 'Garda Advokasi Progresif & Inklusif',
   deskripsi:
     'Badan Eksekutif Mahasiswa sebagai garda terdepan aspirasi dan pemberdayaan mahasiswa. Kami hadir untuk menghubungkan suara mahasiswa dengan kebijakan kampus.',
   visi:
-    'Mewujudkan mahasiswa yang berdaya, kritis, dan inovatif dalam menciptakan lingkungan akademik yang inklusif dan berprestasi demi kemajuan bangsa.',
+    'Mewujudkan BEM PCR sebagai Garda Advokasi yang Progresif dan Inklusif, serta Menjadi Penggerak Organisasi yang Substantif, Solutif, dan Berdampak Nyata bagi Mahasiswa.',
   misi: [
-    'Menampung dan memperjuangkan aspirasi seluruh mahasiswa secara transparan dan akuntabel.',
-    'Memfasilitasi pengembangan kompetensi mahasiswa di bidang akademik dan non-akademik.',
-    'Membangun sinergi antar organisasi kemahasiswaan untuk program kerja yang berdampak.',
-    'Mendorong partisipasi aktif mahasiswa dalam kehidupan kampus dan masyarakat.',
+    'Mereformasi Sistem Advokasi yang Responsif dan Transparan',
+    'Optimalisasi dan Transformasi Program Kerja Berbasis Kebutuhan (Impact-Oriented)',
+    'Meningkatkan Kapasitas dan Penanaman Nilai (Value) SDM BEM',
   ],
   sosmed: {
     instagram: 'https://instagram.com',
