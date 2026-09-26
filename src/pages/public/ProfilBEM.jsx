@@ -26,29 +26,8 @@ const KABINET_PERIODS = [
         desc: 'Meningkatkan Kapasitas dan Penanaman Nilai (Value) SDM BEM.'
       }
     ],
-    tujuan: [
-      'Menjamin transparansi dan akuntabilitas dalam seluruh kanal advokasi mahasiswa.',
-      'Mengoptimalkan program kerja solutif yang berakar dari aspirasi nyata mahasiswa.',
-      'Meningkatkan kapasitas kepemimpinan dan penanaman integritas pengurus BEM.'
-    ],
-    logoFilosofi: [
-      {
-        simbol: 'Pena & Timbangan',
-        arti: 'Melambangkan keadilan, intelektualitas, dan fungsi garda advokasi yang berimbang.'
-      },
-      {
-        simbol: 'Tangan Bersatu',
-        arti: 'Melambangkan persatuan dan gerakan inklusif yang merangkul seluruh elemen mahasiswa.'
-      },
-      {
-        simbol: 'Panah Progresif',
-        arti: 'Melambangkan langkah nyata, keberanian berinovasi, dan transformasi berkelanjutan.'
-      },
-      {
-        simbol: 'Warna Biru & Merah',
-        arti: 'Warna biru melambangkan kedalaman integritas; warna merah melambangkan energi advokasi yang berani dan solutif.'
-      }
-    ]
+    tujuan: [],
+    logoFilosofi: []
   },
   {
     periode: '2025/2026',
@@ -250,16 +229,18 @@ export default function ProfilBEM() {
             {activeCabinet.deskripsiKabinet}
           </p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-            {activeCabinet.logoFilosofi.map((logo, index) => (
-              <div key={index} className="p-4 rounded-xl border border-gray-200 bg-slate-50 space-y-2">
-                <div className="inline-flex items-center justify-center p-1.5 rounded-lg bg-[#E6F3F7] border border-[#CCE7EF] text-[#004B5F] text-xs font-bold">
-                  {logo.simbol}
+          {activeCabinet.logoFilosofi && activeCabinet.logoFilosofi.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              {activeCabinet.logoFilosofi.map((logo, index) => (
+                <div key={index} className="p-4 rounded-xl border border-gray-200 bg-slate-50 space-y-2">
+                  <div className="inline-flex items-center justify-center p-1.5 rounded-lg bg-[#E6F3F7] border border-[#CCE7EF] text-[#004B5F] text-xs font-bold">
+                    {logo.simbol}
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">{logo.arti}</p>
                 </div>
-                <p className="text-xs text-slate-500 leading-relaxed">{logo.arti}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -311,25 +292,27 @@ export default function ProfilBEM() {
       </div>
 
       {/* ── TUJUAN UTAMA KEPENGURUSAN ──────────────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Award className="h-5 w-5 text-emerald-600" />
-              <CardTitle className="text-[#004B5F] text-base">Tujuan Utama Periode {activeCabinet.periode}</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3 text-xs text-slate-600">
-              {activeCabinet.tujuan.map((t, idx) => (
-                <li key={idx} className="flex gap-2">
-                  <span className="text-emerald-600 font-bold shrink-0">0{idx + 1}.</span>
-                  <span className="leading-relaxed">{t}</span>
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
+      <div className={`grid grid-cols-1 ${activeCabinet.tujuan && activeCabinet.tujuan.length > 0 ? 'md:grid-cols-2' : ''} gap-8 items-stretch`}>
+        {activeCabinet.tujuan && activeCabinet.tujuan.length > 0 && (
+          <Card className="border-gray-200 bg-white shadow-sm">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Award className="h-5 w-5 text-emerald-600" />
+                <CardTitle className="text-[#004B5F] text-base">Tujuan Utama Periode {activeCabinet.periode}</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <ul className="space-y-3 text-xs text-slate-600">
+                {activeCabinet.tujuan.map((t, idx) => (
+                  <li key={idx} className="flex gap-2">
+                    <span className="text-emerald-600 font-bold shrink-0">0{idx + 1}.</span>
+                    <span className="leading-relaxed">{t}</span>
+                  </li>
+                ))}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
 
         <Card className="border-gray-200 bg-white shadow-sm">
           <CardHeader>
