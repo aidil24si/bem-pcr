@@ -239,13 +239,19 @@ export default function ProfilBEM() {
               <h3 className="text-2xl font-bold text-[#004B5F]">{activeCabinet.namaKabinet}</h3>
               <p className="text-xs text-slate-500 italic">Slogan: &ldquo;{activeCabinet.tagline}&rdquo;</p>
             </div>
-            <div className="shrink-0 flex items-center justify-center h-14 w-14 rounded-full border border-[#CCE7EF] bg-[#E6F3F7] p-1.5 shadow-sm overflow-hidden">
-              {activeCabinet.logoUrl ? (
-                <img src={activeCabinet.logoUrl} alt={activeCabinet.namaKabinet} className="h-full w-full object-contain" />
-              ) : (
-                <Landmark className="h-6 w-6 text-[#004B5F]" />
-              )}
-            </div>
+            {activeCabinet.logoUrl ? (
+              <div className="shrink-0 flex items-center justify-center h-16 w-16 sm:h-20 sm:w-20 rounded-full border border-gray-200 bg-white p-2 shadow-sm">
+                <img
+                  src={activeCabinet.logoUrl}
+                  alt={activeCabinet.namaKabinet}
+                  className="h-full w-full object-contain"
+                />
+              </div>
+            ) : (
+              <div className="shrink-0 flex items-center justify-center h-14 w-14 rounded-full border border-[#CCE7EF] bg-[#E6F3F7] text-[#004B5F]">
+                <Landmark className="h-6 w-6" />
+              </div>
+            )}
           </div>
 
           <p className="text-slate-600 text-sm leading-relaxed">
