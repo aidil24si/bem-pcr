@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GraduationCap } from 'lucide-react';
+import logoAksalaksana from '../assets/logo-aksalaksana.png';
 
 const FOOTER_LINKS = [
   { path: '/',         label: 'Beranda' },
@@ -24,8 +24,12 @@ export default function Footer() {
 
           {/* Brand Info */}
           <div className="md:col-span-5 space-y-3">
-            <div className="flex items-center gap-2">
-              <GraduationCap className="h-5 w-5 text-white" />
+            <div className="flex items-center gap-2.5">
+              <img
+                src={logoAksalaksana}
+                alt="Logo BEM PCR Aksalaksana"
+                className="h-7 w-7 object-contain bg-white rounded-full p-0.5"
+              />
               <span className="font-extrabold text-white tracking-tight">Badan Eksekutif Mahasiswa</span>
             </div>
             <p className="text-[#CCE7EF] text-xs leading-relaxed max-w-xs">

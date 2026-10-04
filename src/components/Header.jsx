@@ -3,13 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   MessageSquare,
   Shield,
-  GraduationCap,
   Home,
   BookOpen,
   Menu,
   X,
   Users,
 } from 'lucide-react';
+import logoAksalaksana from '../assets/logo-aksalaksana.png';
 
 const PRIMARY_NAV = [
   { path: '/',         label: 'Beranda',         icon: Home },
@@ -39,9 +39,13 @@ export default function Header() {
         {/* Logo Brand */}
         <button
           onClick={() => navigateTo('/')}
-          className="flex items-center gap-2 cursor-pointer group shrink-0"
+          className="flex items-center gap-2.5 cursor-pointer group shrink-0"
         >
-          <GraduationCap className="h-6 w-6 text-[#004B5F] group-hover:scale-110 transition-transform" />
+          <img
+            src={logoAksalaksana}
+            alt="Logo BEM PCR Aksalaksana"
+            className="h-8 w-8 object-contain group-hover:scale-105 transition-transform"
+          />
           <span className="font-extrabold text-base text-[#004B5F] tracking-tight">
             BEM Universitas
           </span>

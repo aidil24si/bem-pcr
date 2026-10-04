@@ -23,7 +23,7 @@ const BEM_CONFIG = {
   namaFakultas: '',           // Kosongkan jika BEM Universitas (bukan Fakultas)
   namaKabinet: 'Aksalaksana',
   periode: '2026/2027',
-  tagline: 'Garda Advokasi Progresif & Inklusif',
+  tagline: 'Aksalaksana: Jernih Menganalisis, Nyata Berdampak',
   deskripsi:
     'Badan Eksekutif Mahasiswa sebagai garda terdepan aspirasi dan pemberdayaan mahasiswa. Kami hadir untuk menghubungkan suara mahasiswa dengan kebijakan kampus.',
   visi:

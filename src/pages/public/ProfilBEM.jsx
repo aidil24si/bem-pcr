@@ -4,12 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../..
 import { BookOpen, Target, Award, ShieldAlert, History, Landmark, Sparkles, Compass } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
+import logoAksalaksana from '../../assets/logo-aksalaksana.png';
 
 const KABINET_PERIODS = [
   {
     periode: '2026/2027',
     namaKabinet: 'Kabinet Aksalaksana',
-    tagline: 'Garda Advokasi Progresif & Inklusif',
+    tagline: 'Aksalaksana: Jernih Menganalisis, Nyata Berdampak',
+    logoUrl: logoAksalaksana,
+    maknaNama: 'Nama Aksalaksana berasal dari dua kata bahasa Sanskerta: Aksa yang berarti kejernihan pandangan dan analisis mendalam yang objektif, serta Laksana yang berarti eksekusi dan aksi nyata. Gabungan keduanya merefleksikan filosofi kabinet — pergerakan nyata yang lahir dari pemikiran dan analisis yang jernih, diawali analisis berdasar data, lalu dituntaskan menjadi aksi nyata yang berdampak bagi mahasiswa.',
     deskripsiKabinet: 'Kabinet Aksalaksana berkomitmen mewujudkan BEM PCR sebagai garda advokasi yang progresif dan inklusif, serta menjadi penggerak organisasi yang substantif, solutif, dan berdampak nyata bagi seluruh mahasiswa.',
     visi: 'Mewujudkan BEM PCR sebagai Garda Advokasi yang Progresif dan Inklusif, serta Menjadi Penggerak Organisasi yang Substantif, Solutif, dan Berdampak Nyata bagi Mahasiswa.',
     misi: [
@@ -27,7 +30,23 @@ const KABINET_PERIODS = [
       }
     ],
     tujuan: [],
-    logoFilosofi: []
+    logoFilosofi: [
+      {
+        simbol: 'Dua Bulu Merak',
+        sub: 'Visi dan Arah',
+        arti: 'Melambangkan pandangan ke depan dan arah gerak Kabinet Aksalaksana dalam membawa gagasan menuju aksi nyata yang berdampak.'
+      },
+      {
+        simbol: 'Kelopak Tanaman',
+        sub: 'Pertumbuhan & Dampak',
+        arti: 'Kelopak tanaman melambangkan proses pertumbuhan dan perkembangan. Unsur ini menggambarkan gagasan yang terus dikembangkan, dari sebuah pemikiran hingga menjadi aksi nyata yang memberikan manfaat dan dampak.'
+      },
+      {
+        simbol: 'Badan Burung Merak',
+        sub: 'Identitas & Keberanian',
+        arti: 'Bentuk burung merak melambangkan identitas, kepercayaan diri, dan keberanian mahasiswa dalam menyuarakan gagasan. Bentuknya yang terbuka merepresentasikan semangat untuk tampil, bergerak, dan membawa perubahan.'
+      }
+    ]
   },
   {
     periode: '2025/2026',
@@ -220,8 +239,12 @@ export default function ProfilBEM() {
               <h3 className="text-2xl font-bold text-[#004B5F]">{activeCabinet.namaKabinet}</h3>
               <p className="text-xs text-slate-500 italic">Slogan: &ldquo;{activeCabinet.tagline}&rdquo;</p>
             </div>
-            <div className="shrink-0 flex items-center justify-center h-14 w-14 rounded-full border border-[#CCE7EF] bg-[#E6F3F7] text-[#004B5F]">
-              <Landmark className="h-6 w-6" />
+            <div className="shrink-0 flex items-center justify-center h-14 w-14 rounded-full border border-[#CCE7EF] bg-[#E6F3F7] p-1.5 shadow-sm overflow-hidden">
+              {activeCabinet.logoUrl ? (
+                <img src={activeCabinet.logoUrl} alt={activeCabinet.namaKabinet} className="h-full w-full object-contain" />
+              ) : (
+                <Landmark className="h-6 w-6 text-[#004B5F]" />
+              )}
             </div>
           </div>
 
@@ -229,13 +252,27 @@ export default function ProfilBEM() {
             {activeCabinet.deskripsiKabinet}
           </p>
 
+          {activeCabinet.maknaNama && (
+            <div className="p-5 rounded-xl bg-slate-50 border border-gray-200 space-y-2">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#004B5F]">
+                Makna Nama Kabinet
+              </h4>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                {activeCabinet.maknaNama}
+              </p>
+            </div>
+          )}
+
           {activeCabinet.logoFilosofi && activeCabinet.logoFilosofi.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+            <div className={`grid grid-cols-1 sm:grid-cols-2 ${activeCabinet.logoFilosofi.length === 3 ? 'md:grid-cols-3' : 'md:grid-cols-4'} gap-4 pt-2`}>
               {activeCabinet.logoFilosofi.map((logo, index) => (
                 <div key={index} className="p-4 rounded-xl border border-gray-200 bg-slate-50 space-y-2">
                   <div className="inline-flex items-center justify-center p-1.5 rounded-lg bg-[#E6F3F7] border border-[#CCE7EF] text-[#004B5F] text-xs font-bold">
                     {logo.simbol}
                   </div>
+                  {logo.sub && (
+                    <p className="text-xs font-bold text-[#004B5F]">{logo.sub}</p>
+                  )}
                   <p className="text-xs text-slate-500 leading-relaxed">{logo.arti}</p>
                 </div>
               ))}
