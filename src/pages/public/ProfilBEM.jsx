@@ -12,7 +12,7 @@ const KABINET_PERIODS = [
     namaKabinet: 'Kabinet Aksalaksana',
     tagline: 'Aksalaksana: Jernih Menganalisis, Nyata Berdampak',
     logoUrl: logoAksalaksana,
-    maknaNama: 'Nama Aksalaksana berasal dari dua kata bahasa Sanskerta: Aksa yang berarti kejernihan pandangan dan analisis mendalam yang objektif, serta Laksana yang berarti eksekusi dan aksi nyata. Gabungan keduanya merefleksikan filosofi kabinet — pergerakan nyata yang lahir dari pemikiran dan analisis yang jernih, diawali analisis berdasar data, lalu dituntaskan menjadi aksi nyata yang berdampak bagi mahasiswa.',
+    maknaNama: 'Nama Aksalaksana berasal dari dua kata bahasa Sanskerta: Aksa yang berarti kejernihan pandangan dan analisis mendalam yang objektif, serta Laksana yang berarti eksekusi dan aksi nyata. Gabungan keduanya merefleksikan filosofi kabinet, pergerakan nyata yang lahir dari pemikiran dan analisis yang jernih, diawali analisis berdasar data, lalu dituntaskan menjadi aksi nyata yang berdampak bagi mahasiswa.',
     deskripsiKabinet: 'Kabinet Aksalaksana berkomitmen mewujudkan BEM PCR sebagai garda advokasi yang progresif dan inklusif, serta menjadi penggerak organisasi yang substantif, solutif, dan berdampak nyata bagi seluruh mahasiswa.',
     visi: 'Mewujudkan BEM PCR sebagai Garda Advokasi yang Progresif dan Inklusif, serta Menjadi Penggerak Organisasi yang Substantif, Solutif, dan Berdampak Nyata bagi Mahasiswa.',
     misi: [
@@ -42,7 +42,7 @@ const KABINET_PERIODS = [
         arti: 'Kelopak tanaman melambangkan proses pertumbuhan dan perkembangan. Unsur ini menggambarkan gagasan yang terus dikembangkan, dari sebuah pemikiran hingga menjadi aksi nyata yang memberikan manfaat dan dampak.'
       },
       {
-        simbol: 'Badan Burung Merak',
+        simbol: 'Burung Merak',
         sub: 'Identitas & Keberanian',
         arti: 'Bentuk burung merak melambangkan identitas, kepercayaan diri, dan keberanian mahasiswa dalam menyuarakan gagasan. Bentuknya yang terbuka merepresentasikan semangat untuk tampil, bergerak, dan membawa perubahan.'
       }
