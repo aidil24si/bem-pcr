@@ -63,15 +63,15 @@ export default function Footer() {
             <h4 className="font-bold text-white text-xs uppercase tracking-wider">Hubungi Kami</h4>
             <ul className="space-y-2 text-xs text-[#CCE7EF]">
               <li>📧 bem@pcr.ac.id</li>
-              <li>📸 @bem.universitas</li>
-              <li>📱 WhatsApp: 0812-3456-7890</li>
+              <li>📸 @bempcr</li>
+              <li>📱 WhatsApp: 0812-6604-1266</li>
             </ul>
           </div>
         </div>
 
         {/* Legal Disclaimer */}
         <div className="mt-8 pt-6 border-t border-[#003847] text-center text-[10px] text-[#CCE7EF]">
-          © {new Date().getFullYear()} Badan Eksekutif Mahasiswa Universitas. Hak cipta dilindungi undang-undang.
+          © {new Date().getFullYear()} Badan Eksekutif Mahasiswa Politeknik Caltex Riau. Hak cipta dilindungi undang-undang.
         </div>
       </div>
     </footer>
