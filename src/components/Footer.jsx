@@ -6,11 +6,7 @@ const FOOTER_LINKS = [
   { path: '/',         label: 'Beranda' },
   { path: '/profil',   label: 'Profil BEM' },
   { path: '/kabinet',  label: 'Kabinet BEM' },
-  { path: '/proker',   label: 'Program Kerja' },
-  { path: '/berita',   label: 'Berita & Agenda' },
-  { path: '/galeri',   label: 'Galeri Foto' },
   { path: '/aspirasi', label: 'Kotak Aspirasi' },
-  { path: '/ruangan',  label: 'Jadwal Ruangan' },
   { path: '/kontak',   label: 'Hubungi Kami' },
 ];
 
@@ -33,7 +29,7 @@ export default function Footer() {
               <span className="font-extrabold text-white tracking-tight">Badan Eksekutif Mahasiswa</span>
             </div>
             <p className="text-[#CCE7EF] text-xs leading-relaxed max-w-xs">
-              Platform digital resmi BEM sebagai layanan aspirasi, informasi jadwal ruangan, dan direktori kabinet mahasiswa.
+              Platform digital resmi BEM sebagai layanan aspirasi.
             </p>
           </div>
 

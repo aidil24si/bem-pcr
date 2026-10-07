@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
-import { BookOpen, Target, Award, ShieldAlert, History, Landmark, Sparkles, Compass } from 'lucide-react';
+import { BookOpen, Target, Award, History, Landmark, Sparkles, Compass } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
 import logoAksalaksana from '../../assets/logo-aksalaksana.png';
@@ -52,7 +52,7 @@ const KABINET_PERIODS = [
     periode: '2025/2026',
     namaKabinet: 'Kabinet Nusantara Maju',
     tagline: 'Bersama Bergerak, Bersatu Membangun',
-    deskripsiKabinet: 'Kabinet Nusantara Maju membawa semangat persatuan, progresivitas, dan keberlanjutan. Kami berkomitmen untuk menjadi motor penggerak perubahan positif di lingkungan universitas dan masyarakat luas.',
+    deskripsiKabinet: 'Kabinet Nusantara Maju membawa semangat persatuan, progresivitas, dan keberlanjutan. Kami berkomitmen untuk menjadi motor penggerak perubahan positif di lingkungan kampus dan masyarakat luas.',
     visi: 'Mewujudkan mahasiswa yang berdaya, kritis, dan inovatif dalam menciptakan lingkungan akademik yang inklusif dan berprestasi demi kemajuan bangsa.',
     misi: [
       {
@@ -101,7 +101,7 @@ const KABINET_PERIODS = [
     namaKabinet: 'Kabinet Sinergi Progresif',
     tagline: 'Berakar Kuat, Menjulang Tinggi',
     deskripsiKabinet: 'Kabinet Sinergi Progresif fokus pada penguatan internal organisasi, peningkatan sarana dan prasarana ormawa, serta kolaborasi antar kementerian untuk menghasilkan program kerja yang inklusif.',
-    visi: 'Menjadikan BEM Universitas wadah kolaborasi aktif yang dinamis, tanggap, dan profesional dalam mendampingi langkah mahasiswa berprestasi.',
+    visi: 'Menjadikan BEM Politeknik Caltex Riau wadah kolaborasi aktif yang dinamis, tanggap, dan profesional dalam mendampingi langkah mahasiswa berprestasi.',
     misi: [
       {
         title: 'Konsolidasi Internal',
@@ -165,13 +165,13 @@ export default function ProfilBEM() {
         <div className="md:col-span-7 space-y-4">
           <h3 className="text-2xl font-bold text-[#004B5F] flex items-center gap-2">
             <History className="h-5 w-5 text-[#004B5F]" />
-            Apa itu BEM Universitas?
+            Apa itu BEM?
           </h3>
           <p className="text-slate-600 text-sm leading-relaxed">
-            Badan Eksekutif Mahasiswa (BEM) merupakan lembaga eksekutif tertinggi di tingkat universitas yang bertugas untuk memimpin koordinasi kegiatan kemahasiswaan, menyalurkan aspirasi, serta menyelenggarakan kegiatan pengembangan minat, bakat, keilmuan, dan pelayanan sosial-politik mahasiswa.
+            Badan Eksekutif Mahasiswa (BEM) merupakan lembaga eksekutif tertinggi di tingkat kampus yang bertugas untuk memimpin koordinasi kegiatan kemahasiswaan, menyalurkan aspirasi, serta menyelenggarakan kegiatan pengembangan minat, bakat, keilmuan, dan pelayanan sosial-politik mahasiswa.
           </p>
           <p className="text-slate-600 text-sm leading-relaxed">
-            Sebagai perpanjangan tangan mahasiswa ke rektorat dan masyarakat luas, BEM berupaya mewujudkan iklim kampus yang demokratis, progresif, dan inklusif. Kami percaya kepemimpinan yang berintegritas berakar dari pelayanan yang tulus dan komunikasi yang terbuka.
+            Sebagai perpanjangan tangan mahasiswa ke kampus dan masyarakat luas, BEM berupaya mewujudkan iklim kampus yang demokratis, progresif, dan inklusif. Kami percaya kepemimpinan yang berintegritas berakar dari pelayanan yang tulus dan komunikasi yang terbuka.
           </p>
         </div>
         <div className="md:col-span-5">
@@ -355,22 +355,7 @@ export default function ProfilBEM() {
           </Card>
         )}
 
-        <Card className="border-gray-200 bg-white shadow-sm">
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-amber-500" />
-              <CardTitle className="text-[#004B5F] text-base">Nilai & Integritas BEM</CardTitle>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-3 text-xs text-slate-600">
-            <p className="leading-relaxed">
-              Seluruh pengurus Badan Eksekutif Mahasiswa terikat oleh kode etik organisasi yang ketat demi menjaga nama baik almamater, transparansi keuangan, dan objektivitas penyaluran aspirasi mahasiswa.
-            </p>
-            <p className="leading-relaxed">
-              Kami menjunjung tinggi kebebasan berpendapat dan independensi lembaga mahasiswa dari segala bentuk intervensi politik praktis pihak luar.
-            </p>
-          </CardContent>
-        </Card>
+        
       </div>
     </div>
   );

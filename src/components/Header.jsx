@@ -47,7 +47,7 @@ export default function Header() {
             className="h-8 w-8 object-contain group-hover:scale-105 transition-transform"
           />
           <span className="font-extrabold text-base text-[#004B5F] tracking-tight">
-            BEM Universitas
+            BEM Politeknik Caltex Riau
           </span>
         </button>
 

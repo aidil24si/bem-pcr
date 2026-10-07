@@ -315,7 +315,7 @@ export default function LandingPage() {
         <section className="py-16 px-4 bg-white">
           <div className="max-w-6xl mx-auto space-y-10">
             <div className="text-center space-y-2">
-              <p className="text-xs uppercase tracking-widest text-[#004B5F] font-extrabold">Pucuk Pimpinan</p>
+              <p className="text-xs uppercase tracking-widest text-[#004B5F] font-extrabold"></p>
               <h2 className="text-2xl md:text-3xl font-extrabold text-[#004B5F]">
                 Presiden & Wakil Presiden Mahasiswa
               </h2>
