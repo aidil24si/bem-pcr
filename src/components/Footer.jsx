@@ -29,7 +29,7 @@ export default function Footer() {
               <span className="font-extrabold text-white tracking-tight">Badan Eksekutif Mahasiswa</span>
             </div>
             <p className="text-[#CCE7EF] text-xs leading-relaxed max-w-xs">
-              Platform digital resmi BEM sebagai layanan aspirasi.
+              Platform digital resmi BEM Politeknik Caltex Riau sebagai layanan aspirasi.
             </p>
           </div>
 
