@@ -3,7 +3,7 @@ import { useMockDatabase } from '../../context/MockDatabaseContext';
 import { Select, SelectItem } from '../../components/ui/Select';
 import { Card, CardContent } from '../../components/ui/Card';
 import { Dialog, DialogHeader, DialogTitle, DialogDescription, DialogContent } from '../../components/ui/Dialog';
-import { Calendar, User, Layers, Shield, Star, Users } from 'lucide-react';
+import { Calendar, User, Layers, Award, Users } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
 const PERIODS = ['2026/2027', '2025/2026', '2024/2025'];
@@ -51,19 +51,14 @@ export default function CabinetHierarchy() {
       onClick={() => setSelectedPengurus(p)}
       className="border-gray-200 bg-white text-center flex flex-col items-center p-5 space-y-3 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg group"
     >
-      <div className="relative">
-        <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50">
-          {p.foto_url ? (
-            <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center">
-              <User className="h-8 w-8 text-slate-300" />
-            </div>
-          )}
-        </div>
-        <div className="absolute -bottom-1 -right-1 bg-[#004B5F] rounded-full p-1 text-white border border-white">
-          <Shield className="h-3 w-3" />
-        </div>
+      <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50">
+        {p.foto_url ? (
+          <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
+        ) : (
+          <div className="h-full w-full flex items-center justify-center">
+            <User className="h-8 w-8 text-slate-300" />
+          </div>
+        )}
       </div>
       <div>
         <h4 className="font-bold text-[#004B5F] text-sm line-clamp-1">
@@ -74,17 +69,12 @@ export default function CabinetHierarchy() {
     </Card>
   );
 
-  const renderMiniProfile = (p, isSekmen = false) => (
+  const renderMiniProfile = (p) => (
     <div
       key={p.id}
       onClick={() => setSelectedPengurus(p)}
-      className={`p-3 bg-white border ${isSekmen ? 'border-amber-300 bg-amber-50/30' : 'border-gray-200'} rounded-lg text-center relative shadow-sm cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md group`}
+      className="p-3 bg-white border border-gray-200 rounded-lg text-center relative shadow-sm cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md group"
     >
-      {isSekmen && (
-        <div className="absolute -top-2 -right-2 bg-amber-500 text-white rounded-full p-0.5 shadow-md" title="Sekretaris Kementerian">
-          <Star className="h-3 w-3" />
-        </div>
-      )}
       <div className="h-12 w-12 rounded-full overflow-hidden mx-auto mb-2 border border-gray-200 bg-slate-50">
         {p.foto_url ? (
           <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
@@ -97,7 +87,7 @@ export default function CabinetHierarchy() {
       <div className="font-semibold text-[#004B5F] text-xs truncate">
         {p.nama}
       </div>
-      <div className={`text-[10px] ${isSekmen ? 'text-amber-600' : 'text-slate-500'} truncate`}>{p.jabatan}</div>
+      <div className="text-[10px] text-slate-500 truncate">{p.jabatan}</div>
     </div>
   );
 
@@ -207,8 +197,8 @@ export default function CabinetHierarchy() {
                                   {(pimpinan.length > 0 || sekmen.length > 0) && (
                                     <div className="space-y-3">
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {pimpinan.map(p => renderMiniProfile(p, false))}
-                                        {sekmen.map(p => renderMiniProfile(p, true))}
+                                        {pimpinan.map(p => renderMiniProfile(p))}
+                                        {sekmen.map(p => renderMiniProfile(p))}
                                       </div>
                                     </div>
                                   )}
@@ -217,7 +207,7 @@ export default function CabinetHierarchy() {
                                   {anggota.length > 0 && (
                                     <div className="space-y-3 pt-2 border-t border-gray-200 border-dashed">
                                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                                        {anggota.map(p => renderMiniProfile(p, false))}
+                                        {anggota.map(p => renderMiniProfile(p))}
                                       </div>
                                     </div>
                                   )}
@@ -262,7 +252,7 @@ export default function CabinetHierarchy() {
                 {/* Prestasi Akademik */}
                 <div className="space-y-2">
                   <h4 className="text-xs font-extrabold text-[#004B5F] uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100">
-                    <Star className="h-3.5 w-3.5" /> Prestasi Akademik
+                    <Award className="h-3.5 w-3.5" /> Prestasi Akademik
                   </h4>
                   {(!selectedPengurus.prestasi_akademik || selectedPengurus.prestasi_akademik.length === 0) ? (
                     <p className="text-sm text-slate-400 italic">Belum ada data.</p>
@@ -276,7 +266,7 @@ export default function CabinetHierarchy() {
                 {/* Prestasi Non-Akademik */}
                 <div className="space-y-2">
                   <h4 className="text-xs font-extrabold text-[#004B5F] uppercase tracking-wider flex items-center gap-2 pb-2 border-b border-gray-100">
-                    <Star className="h-3.5 w-3.5" /> Prestasi Non-Akademik
+                    <Award className="h-3.5 w-3.5" /> Prestasi Non-Akademik
                   </h4>
                   {(!selectedPengurus.prestasi_non_akademik || selectedPengurus.prestasi_non_akademik.length === 0) ? (
                     <p className="text-sm text-slate-400 italic">Belum ada data.</p>
