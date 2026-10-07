@@ -167,8 +167,6 @@ export default function AspirasiPublic() {
   return (
     <div className="space-y-12 max-w-6xl mx-auto px-4 py-8">
       <PageHeader
-        tag="Kotak Aspirasi"
-        icon={MessageSquare}
         title="Kotak Aspirasi Mahasiswa"
         description="Suarakan keluhan, saran, dan ide konstruktif Anda. Kami menjamin privasi Anda (termasuk pembersihan otomatis metadata EXIF foto)."
       />

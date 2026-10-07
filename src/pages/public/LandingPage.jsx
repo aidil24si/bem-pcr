@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Megaphone,
   BookOpen,
-  Star,
   TrendingUp,
   CheckCircle,
   Zap,
@@ -171,12 +170,6 @@ export default function LandingPage() {
       {/* ── HERO SECTION ──────────────────────────────────── */}
       <section className="relative min-h-[92vh] min-h-[680px] lg:min-h-[780px] flex flex-col items-center justify-center text-center px-4 pb-24 sm:pb-32 overflow-hidden bg-white">
         <div className="relative z-10 max-w-4xl mx-auto space-y-7">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#CCE7EF] bg-[#E6F3F7] text-[#004B5F] text-xs font-bold uppercase tracking-widest">
-            <Star className="h-3 w-3" />
-            Kabinet {BEM_CONFIG.namaKabinet} · {BEM_CONFIG.periode}
-          </div>
-
           {/* Headline */}
           <h1 className="text-4xl sm:text-6xl md:text-7xl font-extrabold leading-tight tracking-tight">
             <span className="text-[#004B5F]">Badan Eksekutif</span>
@@ -352,10 +345,6 @@ export default function LandingPage() {
           <div className="relative overflow-hidden rounded-3xl border border-[#CCE7EF] bg-white shadow-xl p-10 md:p-14 text-center">
             
             <div className="relative z-10 space-y-6">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#CCE7EF] bg-[#E6F3F7] text-[#004B5F] text-xs font-bold uppercase tracking-widest">
-                <Megaphone className="h-3.5 w-3.5" />
-                Suaramu Penting
-              </div>
               <h2 className="text-3xl md:text-4xl font-extrabold text-[#004B5F] leading-tight">
                 Punya keluhan atau saran<br />
                 untuk kampus kita?

@@ -154,10 +154,8 @@ export default function ProfilBEM() {
   return (
     <div className="space-y-12 max-w-6xl mx-auto px-4 py-8">
       
-      {/* ── HEADER HERO (Pola PageHeader Pemersatu) ───────── */}
+      {/* ── HEADER HERO ─────────────────────────────────── */}
       <PageHeader
-        tag="Profil Resmi BEM"
-        icon={Landmark}
         title="Badan Eksekutif Mahasiswa"
         description="Kenali peran utama BEM sebagai lembaga eksekutif tertinggi mahasiswa serta telusuri rekam jejak visi, misi, dan kabinet kepengurusan kami antar-periode."
       />
