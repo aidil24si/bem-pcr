@@ -62,8 +62,8 @@ export default function Footer() {
           <div className="md:col-span-4 space-y-3">
             <h4 className="font-bold text-white text-xs uppercase tracking-wider">Hubungi Kami</h4>
             <ul className="space-y-2 text-xs text-[#CCE7EF]">
-              <li>📧 bem@pcr.ac.id</li>
-              <li>📸 @bempcr</li>
+              <li>📧 Email: bem@pcr.ac.id</li>
+              <li>📸 Instagram: @bempcr</li>
               <li>📱 WhatsApp: 0812-6604-1266</li>
             </ul>
           </div>
