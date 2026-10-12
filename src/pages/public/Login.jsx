@@ -58,8 +58,6 @@ export default function Login() {
     <div className="max-w-6xl mx-auto px-4 py-10">
       
       <PageHeader
-        tag="Portal Autentikasi"
-        icon={Lock}
         title="Masuk Pengurus BEM"
         description="Gunakan akun administrasi resmi BEM untuk mengakses modul dasbor manajemen."
       />
