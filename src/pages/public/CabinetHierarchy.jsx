@@ -100,7 +100,7 @@ export default function CabinetHierarchy() {
             Struktur Kabinet Dinamis
           </h2>
           <p className="text-slate-500 mt-1 text-sm">
-            Eksplorasi bagan organisasi kepengurusan BEM Universitas secara interaktif.
+            Eksplorasi bagan organisasi kepengurusan BEM Politeknik Caltex Riau secara interaktif.
           </p>
         </div>
         <div className="flex items-center gap-3 shrink-0">

@@ -19,7 +19,7 @@ import {
 // ============================================================
 const BEM_CONFIG = {
   namaUniversitas: 'Politeknik Caltex Riau',
-  namaFakultas: '',           // Kosongkan jika BEM Universitas (bukan Fakultas)
+  namaFakultas: '',           // Kosongkan jika BEM Politeknik Caltex Riau (bukan Fakultas)
   namaKabinet: 'Aksalaksana',
   periode: '2026/2027',
   tagline: 'Aksalaksana: Jernih Menganalisis, Nyata Berdampak',
@@ -36,7 +36,7 @@ const BEM_CONFIG = {
     instagram: 'https://instagram.com',
     youtube: 'https://youtube.com',
     tiktok: 'https://tiktok.com',
-    email: 'bem@universitas.ac.id',
+    email: 'bem@pcr.ac.id',
     whatsapp: 'https://wa.me/62812345678',
   },
 };

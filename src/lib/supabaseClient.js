@@ -55,14 +55,14 @@ class MockSupabaseClient {
           nama: 'Super Admin BEM',
           role: 'super_admin',
           kementerian_id: null,
-          email: 'bem@universitas.ac.id',
+          email: 'bem@pcr.ac.id',
         },
         {
           id: 'admin-adkesma-id',
           nama: 'Admin Adkesma',
           role: 'admin_sektoral',
           kementerian_id: 'k-adkesma',
-          email: 'adkesma@universitas.ac.id',
+          email: 'adkesma@pcr.ac.id',
         },
       ];
       localStorage.setItem('mock_profiles', JSON.stringify(initialProfiles));
@@ -135,7 +135,7 @@ class MockSupabaseClient {
           tipe_isu: 'intangible',
           identitas: null, // Anonim
           prodi: 'Anonim',
-          deskripsi: 'Kurangnya bimbingan konseling dan kesehatan mental gratis di tingkat universitas.',
+          deskripsi: 'Kurangnya bimbingan konseling dan kesehatan mental gratis di tingkat kampus.',
           bukti_url: null,
           rilis_id: null,
           created_at: new Date().toISOString(),
@@ -152,7 +152,7 @@ class MockSupabaseClient {
           tanggal: '2025-08-15',
           ruangan_utama: 'Gedung Pertemuan Utama (Auditorium)',
           ruangan_tambahan: 'Selasar Barat',
-          nama_ormawa: 'BEM Universitas',
+          nama_ormawa: 'BEM Politeknik Caltex Riau',
           nama_agenda: 'Grand Opening Kabinet BEM 2025',
           jam_acara: '08:00 - 13:00',
         },
@@ -188,9 +188,9 @@ class MockSupabaseClient {
       const initialBerita = [
         {
           id: 'news-1',
-          judul: 'BEM Universitas Nusantara Luncurkan Website Operasional Baru',
+          judul: 'BEM Politeknik Caltex Riau Luncurkan Website Operasional Baru',
           ringkasan: 'Website ini dirancang untuk mempermudah penyampaian aspirasi mahasiswa dan transparansi jadwal peminjaman ruangan ormawa.',
-          isi: 'Dalam rangka meningkatkan kualitas pelayanan dan transparansi administrasi bagi seluruh mahasiswa, Badan Eksekutif Mahasiswa (BEM) Universitas Nusantara resmi meluncurkan platform website operasional baru.\n\nWebsite ini mengintegrasikan berbagai layanan unggulan, seperti Kotak Aspirasi Publik yang dilengkapi dengan Canvas-based EXIF Sanitizer untuk keamanan privasi foto bukti, serta Papan Jadwal Ruangan real-time.\n\nPresiden Mahasiswa, Aidil Ikhsan Rezki Idris, menyatakan bahwa inovasi digital ini diharapkan mampu memangkas rantai birokrasi dan mendekatkan BEM dengan mahasiswa.',
+          isi: 'Dalam rangka meningkatkan kualitas pelayanan dan transparansi administrasi bagi seluruh mahasiswa, Badan Eksekutif Mahasiswa (BEM) Politeknik Caltex Riau resmi meluncurkan platform website operasional baru.\n\nWebsite ini mengintegrasikan berbagai layanan unggulan, seperti Kotak Aspirasi Publik yang dilengkapi dengan Canvas-based EXIF Sanitizer untuk keamanan privasi foto bukti, serta Papan Jadwal Ruangan real-time.\n\nPresiden Mahasiswa, Aidil Ikhsan Rezki Idris, menyatakan bahwa inovasi digital ini diharapkan mampu memangkas rantai birokrasi dan mendekatkan BEM dengan mahasiswa.',
           kategori: 'Kampus',
           gambar_url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=600',
           pembuat: 'Kementerian Kominfo',
@@ -275,7 +275,7 @@ class MockSupabaseClient {
         {
           id: 'gal-1',
           judul_foto: 'Pelantikan Pengurus Baru BEM 2025',
-          deskripsi: 'Momen khidmat pengucapan sumpah pengurus BEM Universitas oleh Rektor.',
+          deskripsi: 'Momen khidmat pengucapan sumpah pengurus BEM Politeknik Caltex Riau oleh Direktur.',
           gambar_url: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
           kategori: 'Kegiatan',
           tanggal_unggah: '2025-06-10',
@@ -336,7 +336,7 @@ class MockSupabaseClient {
       signUp: async ({ email, password: _password, options }) => {
         const profiles = JSON.parse(localStorage.getItem('mock_profiles') || '[]');
         const newUserId = `user-${Math.random().toString(36).substr(2, 9)}`;
-        const role = email === 'bem@universitas.ac.id' ? 'super_admin' : 'admin_sektoral';
+        const role = email === 'bem@pcr.ac.id' ? 'super_admin' : 'admin_sektoral';
         
         const newProfile = {
           id: newUserId,

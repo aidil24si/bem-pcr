@@ -182,7 +182,7 @@ BEGIN
         new.id,
         coalesce(new.raw_user_meta_data->>'nama', 'Pengurus BEM'),
         CASE 
-            WHEN new.email = 'bem@universitas.ac.id' THEN 'super_admin'::user_role
+            WHEN new.email = 'bem@pcr.ac.id' THEN 'super_admin'::user_role
             ELSE 'admin_sektoral'::user_role
         END,
         (new.raw_user_meta_data->>'kementerian_id')::uuid
