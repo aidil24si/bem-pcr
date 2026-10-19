@@ -432,27 +432,13 @@ export default function AspirasiPublic() {
                             </p>
                           </div>
 
-                          {/* Aspirasi Terkonsolidasi */}
+                          {/* Aspirasi Terkait */}
                           {linkedAsps.length > 0 && (
-                            <div className="pt-4 border-t border-gray-200 space-y-3">
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                                Telah Direspon ({linkedAsps.length}):
-                              </p>
-                              <div className="space-y-3">
-                                {linkedAsps.map((asp) => (
-                                  <div key={asp.id} className="text-xs bg-white p-3 rounded-lg border border-gray-100 shadow-sm">
-                                    <div className="flex justify-between items-center mb-1.5 text-[10px] font-bold text-[#004B5F]">
-                                      <span>{asp.identitas ? asp.identitas.nama : 'Anonim'}</span>
-                                    </div>
-                                    <p className="text-slate-600 leading-relaxed italic">"{asp.deskripsi}"</p>
-                                    {asp.bukti_url && (
-                                      <a href={asp.bukti_url} target="_blank" rel="noreferrer" className="text-[10px] text-[#004B5F] font-bold mt-2 inline-block hover:underline">
-                                        📎 Lihat Lampiran Sanitasi
-                                      </a>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
+                            <div className="pt-3 border-t border-gray-100 flex items-center gap-1.5 text-xs text-slate-500">
+                              <MessageSquare className="h-3.5 w-3.5 text-slate-400" />
+                              <span>
+                                <strong className="text-[#004B5F] font-semibold">{linkedAsps.length}</strong> aspirasi terkait
+                              </span>
                             </div>
                           )}
                         </CardContent>
