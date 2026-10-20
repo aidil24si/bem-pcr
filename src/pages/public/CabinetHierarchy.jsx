@@ -7,6 +7,8 @@ import { Calendar, User, Layers, Award, Users } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 
 const PERIODS = ['2026/2027', '2025/2026', '2024/2025'];
+const SHOW_ARCHIVED_PERIODS = false;
+const VISIBLE_PERIODS = SHOW_ARCHIVED_PERIODS ? PERIODS : PERIODS.filter(y => y === '2026/2027');
 
 const RUMPUN_LIST = [
   { name: 'Pelayanan & Isu', color: 'emerald', bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
@@ -45,51 +47,71 @@ export default function CabinetHierarchy() {
     return pengurusList.filter((p) => p.kementerian_id === minId);
   };
 
-  const renderProfileCard = (p) => (
-    <Card
-      key={p.id}
-      onClick={() => setSelectedPengurus(p)}
-      className="border-gray-200 bg-white text-center flex flex-col items-center p-5 space-y-3 cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg group"
-    >
-      <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50">
-        {p.foto_url ? (
-          <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center">
-            <User className="h-8 w-8 text-slate-300" />
-          </div>
-        )}
-      </div>
-      <div>
-        <h4 className="font-bold text-[#004B5F] text-sm line-clamp-1">
-          {p.nama}
-        </h4>
-        <p className="text-xs text-slate-500 font-medium">{p.jabatan}</p>
-      </div>
-    </Card>
+  const hasDetails = (p) => (
+    (p.prestasi_akademik && p.prestasi_akademik.length > 0) ||
+    (p.prestasi_non_akademik && p.prestasi_non_akademik.length > 0) ||
+    (p.riwayat_organisasi && p.riwayat_organisasi.length > 0)
   );
 
-  const renderMiniProfile = (p) => (
-    <div
-      key={p.id}
-      onClick={() => setSelectedPengurus(p)}
-      className="p-3 bg-white border border-gray-200 rounded-lg text-center relative shadow-sm cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md group"
-    >
-      <div className="h-12 w-12 rounded-full overflow-hidden mx-auto mb-2 border border-gray-200 bg-slate-50">
-        {p.foto_url ? (
-          <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
-        ) : (
-          <div className="h-full w-full flex items-center justify-center">
-            <User className="h-5 w-5 text-slate-300" />
-          </div>
-        )}
+  const renderProfileCard = (p) => {
+    const isInteractive = hasDetails(p);
+    return (
+      <Card
+        key={p.id}
+        onClick={isInteractive ? () => setSelectedPengurus(p) : undefined}
+        className={`border-gray-200 bg-white text-center flex flex-col items-center p-5 space-y-3 ${
+          isInteractive
+            ? 'cursor-pointer transition-all hover:-translate-y-1 hover:shadow-lg group'
+            : ''
+        }`}
+      >
+        <div className="h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-slate-50">
+          {p.foto_url ? (
+            <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center">
+              <User className="h-8 w-8 text-slate-300" />
+            </div>
+          )}
+        </div>
+        <div>
+          <h4 className="font-bold text-[#004B5F] text-sm line-clamp-1">
+            {p.nama}
+          </h4>
+          <p className="text-xs text-slate-500 font-medium">{p.jabatan}</p>
+        </div>
+      </Card>
+    );
+  };
+
+  const renderMiniProfile = (p) => {
+    const isInteractive = hasDetails(p);
+    return (
+      <div
+        key={p.id}
+        onClick={isInteractive ? () => setSelectedPengurus(p) : undefined}
+        className={`p-3 bg-white border border-gray-200 rounded-lg text-center relative shadow-sm ${
+          isInteractive
+            ? 'cursor-pointer transition-all hover:-translate-y-1 hover:shadow-md group'
+            : ''
+        }`}
+      >
+        <div className="h-12 w-12 rounded-full overflow-hidden mx-auto mb-2 border border-gray-200 bg-slate-50">
+          {p.foto_url ? (
+            <img src={p.foto_url} alt={p.nama} className="h-full w-full object-cover" />
+          ) : (
+            <div className="h-full w-full flex items-center justify-center">
+              <User className="h-5 w-5 text-slate-300" />
+            </div>
+          )}
+        </div>
+        <div className="font-semibold text-[#004B5F] text-xs truncate">
+          {p.nama}
+        </div>
+        <div className="text-[10px] text-slate-500 truncate">{p.jabatan}</div>
       </div>
-      <div className="font-semibold text-[#004B5F] text-xs truncate">
-        {p.nama}
-      </div>
-      <div className="text-[10px] text-slate-500 truncate">{p.jabatan}</div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="space-y-12 max-w-6xl mx-auto px-4 py-8">
@@ -103,21 +125,23 @@ export default function CabinetHierarchy() {
             Eksplorasi bagan organisasi kepengurusan BEM Politeknik Caltex Riau secara interaktif.
           </p>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <label className="text-xs text-[#004B5F] font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <Calendar className="h-4 w-4" />
-            Periode Kabinet:
-          </label>
-          <div className="w-40">
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              {PERIODS.map((y) => (
-                <SelectItem key={y} value={y}>
-                  Kabinet {y}
-                </SelectItem>
-              ))}
-            </Select>
+        {VISIBLE_PERIODS.length > 1 && (
+          <div className="flex items-center gap-3 shrink-0">
+            <label className="text-xs text-[#004B5F] font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              Periode Kabinet:
+            </label>
+            <div className="w-40">
+              <Select value={selectedYear} onValueChange={setSelectedYear}>
+                {VISIBLE_PERIODS.map((y) => (
+                  <SelectItem key={y} value={y}>
+                    Kabinet {y}
+                  </SelectItem>
+                ))}
+              </Select>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {loading ? (

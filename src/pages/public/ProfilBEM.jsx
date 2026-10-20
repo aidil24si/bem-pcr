@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/Card';
-import { BookOpen, Target, Award, History, Landmark, Sparkles, Compass } from 'lucide-react';
+import { BookOpen, Target, Award, History, Landmark, Sparkles, Compass, ShieldAlert } from 'lucide-react';
 import useDocumentTitle from '../../hooks/useDocumentTitle';
 import PageHeader from '../../components/ui/PageHeader';
 import logoAksalaksana from '../../assets/logo-aksalaksana.png';
@@ -133,9 +133,16 @@ const KABINET_PERIODS = [
   }
 ];
 
+// Flag kondisional untuk menampilkan data arsip dan teks organisasi umum
+const SHOW_ARCHIVED_PERIODS = false;
+const SHOW_UNVERIFIED_ORG_CONTENT = false;
+
 export default function ProfilBEM() {
   useDocumentTitle('Profil BEM');
-  const [cabinetPeriods, setCabinetPeriods] = useState(KABINET_PERIODS);
+  const visibleCabinets = SHOW_ARCHIVED_PERIODS
+    ? KABINET_PERIODS
+    : KABINET_PERIODS.filter(k => k.periode === '2026/2027');
+  const [cabinetPeriods, setCabinetPeriods] = useState(visibleCabinets);
   const [selectedPeriod, setSelectedPeriod] = useState('2026/2027');
   const [loading, setLoading] = useState(false);
 
@@ -161,73 +168,77 @@ export default function ProfilBEM() {
       />
 
       {/* ── SEJARAH & PERAN SINGKAT (General) ──────────────── */}
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-        <div className="md:col-span-7 space-y-4">
-          <h3 className="text-2xl font-bold text-[#004B5F] flex items-center gap-2">
-            <History className="h-5 w-5 text-[#004B5F]" />
-            Apa itu BEM?
-          </h3>
-          <p className="text-slate-600 text-sm leading-relaxed">
-            Badan Eksekutif Mahasiswa (BEM) merupakan lembaga eksekutif tertinggi di tingkat kampus yang bertugas untuk memimpin koordinasi kegiatan kemahasiswaan, menyalurkan aspirasi, serta menyelenggarakan kegiatan pengembangan minat, bakat, keilmuan, dan pelayanan sosial-politik mahasiswa.
-          </p>
-          <p className="text-slate-600 text-sm leading-relaxed">
-            Sebagai perpanjangan tangan mahasiswa ke kampus dan masyarakat luas, BEM berupaya mewujudkan iklim kampus yang demokratis, progresif, dan inklusif. Kami percaya kepemimpinan yang berintegritas berakar dari pelayanan yang tulus dan komunikasi yang terbuka.
-          </p>
-        </div>
-        <div className="md:col-span-5">
-          <Card className="border-gray-200 bg-white shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-[#E6F3F7] border border-[#CCE7EF] rounded-lg">
-                  <Compass className="h-5 w-5 text-[#004B5F]" />
+      {SHOW_UNVERIFIED_ORG_CONTENT && (
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
+          <div className="md:col-span-7 space-y-4">
+            <h3 className="text-2xl font-bold text-[#004B5F] flex items-center gap-2">
+              <History className="h-5 w-5 text-[#004B5F]" />
+              Apa itu BEM?
+            </h3>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Badan Eksekutif Mahasiswa (BEM) merupakan lembaga eksekutif tertinggi di tingkat kampus yang bertugas untuk memimpin koordinasi kegiatan kemahasiswaan, menyalurkan aspirasi, serta menyelenggarakan kegiatan pengembangan minat, bakat, keilmuan, dan pelayanan sosial-politik mahasiswa.
+            </p>
+            <p className="text-slate-600 text-sm leading-relaxed">
+              Sebagai perpanjangan tangan mahasiswa ke kampus dan masyarakat luas, BEM berupaya mewujudkan iklim kampus yang demokratis, progresif, dan inklusif. Kami percaya kepemimpinan yang berintegritas berakar dari pelayanan yang tulus dan komunikasi yang terbuka.
+            </p>
+          </div>
+          <div className="md:col-span-5">
+            <Card className="border-gray-200 bg-white shadow-sm">
+              <CardContent className="p-6 space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-[#E6F3F7] border border-[#CCE7EF] rounded-lg">
+                    <Compass className="h-5 w-5 text-[#004B5F]" />
+                  </div>
+                  <h4 className="font-bold text-[#004B5F]">Prinsip Kerja BEM</h4>
                 </div>
-                <h4 className="font-bold text-[#004B5F]">Prinsip Kerja BEM</h4>
-              </div>
-              <ul className="space-y-2 text-xs text-slate-600">
-                <li className="flex items-start gap-2">
-                  <span className="text-[#004B5F] font-bold">•</span>
-                  <span><strong>Inklusif:</strong> Terbuka untuk seluruh mahasiswa tanpa membedakan golongan.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#004B5F] font-bold">•</span>
-                  <span><strong>Progresif:</strong> Selalu berinovasi dan adaptif terhadap perkembangan teknologi.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-[#004B5F] font-bold">•</span>
-                  <span><strong>Substantif:</strong> Mengutamakan dampak nyata bagi mahasiswa dan civitas akademika.</span>
-                </li>
-              </ul>
-            </CardContent>
-          </Card>
+                <ul className="space-y-2 text-xs text-slate-600">
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#004B5F] font-bold">•</span>
+                    <span><strong>Inklusif:</strong> Terbuka untuk seluruh mahasiswa tanpa membedakan golongan.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#004B5F] font-bold">•</span>
+                    <span><strong>Progresif:</strong> Selalu berinovasi dan adaptif terhadap perkembangan teknologi.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-[#004B5F] font-bold">•</span>
+                    <span><strong>Substantif:</strong> Mengutamakan dampak nyata bagi mahasiswa dan civitas akademika.</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* ── ARSIP KABINET & SELEKTOR PERIODE ──────────────── */}
-      <div className="border-t border-gray-200 pt-8 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="space-y-1">
-            <h3 className="text-xl font-bold text-[#004B5F] flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-[#004B5F]" />
-              Arsip & Filosofi Kabinet
-            </h3>
-            <p className="text-xs text-slate-500">Pilih periode kepengurusan untuk melihat visi-misi kabinet sejarah.</p>
+      <div className={`${SHOW_UNVERIFIED_ORG_CONTENT ? 'border-t border-gray-200 pt-8' : ''} space-y-6`}>
+        {cabinetPeriods.length > 1 && (
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="space-y-1">
+              <h3 className="text-xl font-bold text-[#004B5F] flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-[#004B5F]" />
+                Arsip & Filosofi Kabinet
+              </h3>
+              <p className="text-xs text-slate-500">Pilih periode kepengurusan untuk melihat visi-misi kabinet sejarah.</p>
+            </div>
+            <div className="flex bg-slate-50 p-1.5 rounded-xl border border-gray-200 max-w-sm">
+              {cabinetPeriods.map(k => (
+                <button
+                  key={k.periode}
+                  onClick={() => setSelectedPeriod(k.periode)}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    selectedPeriod === k.periode
+                      ? 'bg-[#004B5F] text-white shadow-md shadow-[#004B5F]/20'
+                      : 'text-slate-500 hover:text-[#004B5F]'
+                  }`}
+                >
+                  Periode {k.periode}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex bg-slate-50 p-1.5 rounded-xl border border-gray-200 max-w-sm">
-            {cabinetPeriods.map(k => (
-              <button
-                key={k.periode}
-                onClick={() => setSelectedPeriod(k.periode)}
-                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  selectedPeriod === k.periode
-                    ? 'bg-[#004B5F] text-white shadow-md shadow-[#004B5F]/20'
-                    : 'text-slate-500 hover:text-[#004B5F]'
-                }`}
-              >
-                Periode {k.periode}
-              </button>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* Kabinet Details */}
         <div className="rounded-2xl border border-gray-200 bg-white p-8 space-y-6 shadow-sm">
@@ -332,31 +343,50 @@ export default function ProfilBEM() {
         </div>
       </div>
 
-      {/* ── TUJUAN UTAMA KEPENGURUSAN ──────────────────────── */}
-      <div className={`grid grid-cols-1 ${activeCabinet.tujuan && activeCabinet.tujuan.length > 0 ? 'md:grid-cols-2' : ''} gap-8 items-stretch`}>
-        {activeCabinet.tujuan && activeCabinet.tujuan.length > 0 && (
-          <Card className="border-gray-200 bg-white shadow-sm">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <Award className="h-5 w-5 text-emerald-600" />
-                <CardTitle className="text-[#004B5F] text-base">Tujuan Utama Periode {activeCabinet.periode}</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3 text-xs text-slate-600">
-                {activeCabinet.tujuan.map((t, idx) => (
-                  <li key={idx} className="flex gap-2">
-                    <span className="text-emerald-600 font-bold shrink-0">0{idx + 1}.</span>
-                    <span className="leading-relaxed">{t}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-        )}
+      {/* ── TUJUAN UTAMA KEPENGURUSAN & NILAI ORGANISASI ─── */}
+      {((activeCabinet.tujuan && activeCabinet.tujuan.length > 0) || SHOW_UNVERIFIED_ORG_CONTENT) && (
+        <div className={`grid grid-cols-1 ${activeCabinet.tujuan && activeCabinet.tujuan.length > 0 && SHOW_UNVERIFIED_ORG_CONTENT ? 'md:grid-cols-2' : ''} gap-8 items-stretch`}>
+          {activeCabinet.tujuan && activeCabinet.tujuan.length > 0 && (
+            <Card className="border-gray-200 bg-white shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <Award className="h-5 w-5 text-emerald-600" />
+                  <CardTitle className="text-[#004B5F] text-base">Tujuan Utama Periode {activeCabinet.periode}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ul className="space-y-3 text-xs text-slate-600">
+                  {activeCabinet.tujuan.map((t, idx) => (
+                    <li key={idx} className="flex gap-2">
+                      <span className="text-emerald-600 font-bold shrink-0">0{idx + 1}.</span>
+                      <span className="leading-relaxed">{t}</span>
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
+          )}
 
-        
-      </div>
+          {SHOW_UNVERIFIED_ORG_CONTENT && (
+            <Card className="border-gray-200 bg-white shadow-sm">
+              <CardHeader>
+                <div className="flex items-center gap-2">
+                  <ShieldAlert className="h-5 w-5 text-amber-500" />
+                  <CardTitle className="text-[#004B5F] text-base">Nilai & Integritas BEM</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 text-xs text-slate-600">
+                <p className="leading-relaxed">
+                  Seluruh pengurus Badan Eksekutif Mahasiswa terikat oleh kode etik organisasi yang ketat demi menjaga nama baik almamater, transparansi keuangan, dan objektivitas penyaluran aspirasi mahasiswa.
+                </p>
+                <p className="leading-relaxed">
+                  Kami menjunjung tinggi kebebasan berpendapat dan independensi lembaga mahasiswa dari segala bentuk intervensi politik praktis pihak luar.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
     </div>
   );
 }

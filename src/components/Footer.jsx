@@ -7,7 +7,6 @@ const FOOTER_LINKS = [
   { path: '/profil',   label: 'Profil BEM' },
   { path: '/kabinet',  label: 'Kabinet BEM' },
   { path: '/aspirasi', label: 'Kotak Aspirasi' },
-  { path: '/kontak',   label: 'Hubungi Kami' },
 ];
 
 export default function Footer() {

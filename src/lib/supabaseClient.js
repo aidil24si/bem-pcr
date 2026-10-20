@@ -294,7 +294,8 @@ class MockSupabaseClient {
 
     // 11. Pengumuman Dinamis
     if (!localStorage.getItem('mock_pengumuman')) {
-      const initialPengumuman = [
+      const ENABLE_SEED_PENGUMUMAN = false;
+      const initialPengumuman = ENABLE_SEED_PENGUMUMAN ? [
         {
           id: 'ann-1',
           judul: 'Layanan Pengaduan UKT Dibuka',
@@ -302,7 +303,7 @@ class MockSupabaseClient {
           status_aktif: true,
           tipe: 'warning', // info | warning | danger
         }
-      ];
+      ] : [];
       localStorage.setItem('mock_pengumuman', JSON.stringify(initialPengumuman));
     }
 
